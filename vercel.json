@@ -3,14 +3,5 @@
   "framework": null,
   "installCommand": "npm install",
   "buildCommand": "npm run vercel-build",
-  "builds": [
-    {
-      "src": "api/index.ts",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "apps/web/out/**",
-      "use": "@vercel/static"
-    }
-  ]
+  "outputDirectory": "public"
 }
