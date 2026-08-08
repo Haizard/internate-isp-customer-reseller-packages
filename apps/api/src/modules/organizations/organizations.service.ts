@@ -101,7 +101,10 @@ export class OrganizationsService {
       include: { package: true },
     });
     return subscriptions.reduce(
-      (sum: number, subscription) => sum + (subscription.package?.priceCents ?? 0),
+      (
+        sum: number,
+        subscription: { package: { priceCents: number } | null },
+      ) => sum + (subscription.package?.priceCents ?? 0),
       0,
     );
   }

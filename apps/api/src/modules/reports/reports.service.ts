@@ -14,7 +14,7 @@ export class ReportsService {
       name: reseller.name,
       status: reseller.status,
       customers: reseller.customers.length,
-      activeCustomers: reseller.customers.filter((customer) => customer.status === "ACTIVE").length,
+      activeCustomers: reseller.customers.filter((customer: { status: string }) => customer.status === "ACTIVE").length,
       locations: reseller.locations.length,
     }));
   }
@@ -45,7 +45,10 @@ export class ReportsService {
     });
     return resellers.map((reseller: (typeof resellers)[number]) => {
       const monthly = reseller.customers.reduce(
-        (sum: number, customer) => sum + (customer.subscription?.package.priceCents ?? 0),
+        (
+          sum: number,
+          customer: { subscription: { package: { priceCents: number } | null } | null },
+        ) => sum + (customer.subscription?.package?.priceCents ?? 0),
         0,
       );
       return {
