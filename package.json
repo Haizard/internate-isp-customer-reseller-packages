@@ -4,7 +4,7 @@
   "private": true,
   "description": "NetMaster — ISP & Customer Reseller Management Platform",
   "scripts": {
-    "postinstall": "npm --workspace @netmaster/api run db:generate",
+    "vercel-build": "node node_modules/prisma/build/index.js generate --schema apps/api/prisma/schema.prisma && npm run build --workspace @netmaster/web",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
