@@ -1,0 +1,249 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrganizationType {
+  ISP
+  RESELLER
+}
+
+enum UserRole {
+  PLATFORM_OWNER
+  ISP_ADMIN
+  RESELLER
+  CUSTOMER
+}
+
+enum RouterStatus {
+  ACTIVE
+  OFFLINE
+  SUSPENDED
+}
+
+enum CustomerStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum VoucherStatus {
+  UNUSED
+  USED
+  EXPIRED
+}
+
+model Organization {
+  id          String           @id @default(uuid()) @map("id")
+  name        String
+  type        OrganizationType
+  parentOrgId String?
+  parentOrg   Organization?    @relation("OrgHierarchy", fields: [parentOrgId], references: [id])
+  children    Organization[]   @relation("OrgHierarchy")
+  status      String           @default("ACTIVE") @map("status") // ACTIVE | SUSPENDED | PENDING_APPROVAL
+
+  users       User[]
+  locations   Location[]
+  packages    Package[]
+  vouchers    Voucher[]
+  customers   Customer[]
+
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+  createdByUserId String?  @map("created_by_user_id")
+  updatedByUserId String?  @map("updated_by_user_id")
+  deletedAt     DateTime?  @map("deleted_at")
+
+  @@index([parentOrgId])
+  @@index([type, status])
+  @@map("organizations")
+}
+
+model User {
+  id             String       @id @default(uuid()) @map("id")
+  name           String
+  email          String       @unique
+  passwordHash   String       @map("password_hash")
+  role           UserRole
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  customerId     String?      @unique @map("customer_id")
+  customer       Customer?    @relation(fields: [customerId], references: [id])
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdByUserId String? @map("created_by_user_id")
+  updatedByUserId String? @map("updated_by_user_id")
+
+  @@index([organizationId])
+  @@index([role])
+  @@map("users")
+}
+
+model Location {
+  id             String       @id @default(uuid()) @map("id")
+  name           String
+  address        String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  routers        Router[]
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdByUserId String? @map("created_by_user_id")
+  updatedByUserId String? @map("updated_by_user_id")
+
+  @@index([organizationId])
+  @@map("locations")
+}
+
+model Router {
+  id           String        @id @default(uuid()) @map("id")
+  name         String
+  macAddress   String        @unique
+  status       RouterStatus  @default(ACTIVE)
+  locationId   String
+  location     Location      @relation(fields: [locationId], references: [id])
+  customers    Customer[]
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdByUserId String? @map("created_by_user_id")
+  updatedByUserId String? @map("updated_by_user_id")
+
+  @@index([locationId])
+  @@map("router_devices")
+}
+
+model Package {
+  id             String       @id @default(uuid()) @map("id")
+  name           String
+  speedMbps      Int
+  dataCapGb      Int?         // null = unlimited
+  priceCents     Int
+  currency       String       @default("TZS")
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  subscriptions  Subscription[]
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdByUserId String? @map("created_by_user_id")
+  updatedByUserId String? @map("updated_by_user_id")
+
+  @@index([organizationId])
+  @@map("packages")
+}
+
+model Customer {
+  id           String          @id @default(uuid()) @map("id")
+  name         String
+  phone        String
+  wifiSsid     String?
+  wifiPassword String?
+  status       CustomerStatus  @default(ACTIVE)
+  routerId     String
+  router       Router          @relation(fields: [routerId], references: [id])
+  organizationId String
+  organization Organization    @relation(fields: [organizationId], references: [id])
+  subscription Subscription?
+  devices      Device[]
+  usageRecords UsageRecord[]
+  serviceRequests ServiceRequest[]
+  user         User?
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdByUserId String? @map("created_by_user_id")
+  updatedByUserId String? @map("updated_by_user_id")
+  deletedAt     DateTime? @map("deleted_at")
+
+  @@index([routerId])
+  @@index([organizationId, status])
+  @@map("customers")
+}
+
+model Subscription {
+  id           String   @id @default(uuid()) @map("id")
+  customerId   String   @unique
+  customer     Customer @relation(fields: [customerId], references: [id])
+  packageId    String
+  package      Package  @relation(fields: [packageId], references: [id])
+  startedAt    DateTime @default(now()) @map("started_at")
+  renewsAt     DateTime? @map("renews_at")
+
+  @@index([packageId])
+  @@map("subscriptions")
+}
+
+model Voucher {
+  id             String        @id @default(uuid()) @map("id")
+  code           String        @unique
+  organizationId String
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  dataGb         Int?
+  durationHours  Int?
+  status         VoucherStatus @default(UNUSED)
+  usedByCustomerId String?
+  expiresAt      DateTime?
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  @@index([organizationId, status])
+  @@map("vouchers")
+}
+
+model Device {
+  id          String    @id @default(uuid()) @map("id")
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id])
+  macAddress  String
+  deviceName  String?
+  lastSeenAt  DateTime? @map("last_seen_at")
+
+  @@index([customerId])
+  @@map("devices")
+}
+
+model AuditLog {
+  id           String    @id @default(uuid()) @map("id")
+  actorUserId  String?
+  action       String
+  entityType   String
+  entityId     String
+  beforeJson   Json?
+  afterJson    Json?
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([actorUserId])
+  @@map("audit_logs")
+}
+
+model UsageRecord {
+  id          String   @id @default(uuid()) @map("id")
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id])
+  day         DateTime @map("day")
+  bytesUsed   BigInt   @map("bytes_used") @default(0)
+
+  @@index([customerId, day])
+  @@map("usage_records")
+}
+
+model ServiceRequest {
+  id           String   @id @default(uuid()) @map("id")
+  type         String   // UPGRADE | SUPPORT
+  status       String   @default("OPEN") // OPEN | IN_PROGRESS | CLOSED
+  message      String?
+  customerId   String
+  customer     Customer @relation(fields: [customerId], references: [id])
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([customerId])
+  @@map("service_requests")
+}

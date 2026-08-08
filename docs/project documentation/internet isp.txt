@@ -1,0 +1,1962 @@
+﻿Yes. If you're referring to NexusNet (Nexusnet Limited), it is a Tanzanian Internet Service Provider (ISP) based primarily in Arusha. It has been operating for many years and provides internet services to both residential and business customers. 
+
+Some of the services they offer include:
+
+Fiber internet for homes
+
+Business internet connections
+
+Dedicated leased lines
+
+Wi-Fi installation
+
+Web hosting
+
+Email hosting
+
+CCTV + Internet bundled packages in some areas 
+
+
+According to the company's website, they position themselves as one of the early internet providers in Arusha and focus on providing affordable broadband services to homes and small businesses. 
+
+If you want to learn more or contact them, their official website is:
+
+[NexusNet Tanzania](https://nexusnet.co.tz/?utm_source=chatgpt.com)
+
+Their website also lists customer support contacts for new installations and technical support. 
+
+From community discussions in Tanzania, many users—particularly in Arusha—report that Nexus is generally reliable, although experiences can vary depending on the specific neighborhood and infrastructure. 
+
+Are you asking about Nexus because:
+
+1. you want to subscribe to their internet service,
+
+
+2. you're applying for a job there,
+
+
+3. you want to partner with them, or
+
+
+ you have another reason?
+
+Yes, this is possible, but it depends on how you connect the equipment. The fiber connection and the router are separate things.
+
+Your proposed setup would look like this:
+
+Internet
+     │
+Nexus Fiber
+     │
+Nexus ONT/Router
+     │ (LAN cable)
+     ▼
+Your Airtel Router
+     │
+ Wi-Fi Clients
+
+In this setup:
+
+The Nexus device only provides the internet connection.
+
+Your Airtel router creates the Wi-Fi network.
+
+All phones, laptops, TVs, etc., connect to the Airtel router.
+
+The Airtel router applies its own MAC whitelist/blacklist and other access control features.
+
+
+Will it work?
+
+Yes, if the Airtel router supports using its WAN (Internet) port to receive internet from another router.
+
+However, there are a few things to consider.
+
+Option 1: Double NAT (Easy)
+
+Internet
+   │
+Nexus Router (192.168.1.1)
+   │
+WAN
+Airtel Router (192.168.8.1)
+   │
+Devices
+
+This is the easiest setup.
+
+Pros:
+
+Very easy to configure.
+
+Airtel router manages all Wi-Fi users.
+
+MAC filtering works on devices connected to the Airtel Wi-Fi.
+
+
+Cons:
+
+Double NAT can cause issues with some online games, VPNs, or port forwarding.
+
+
+For normal browsing, YouTube, Netflix, WhatsApp, etc., it's usually fine.
+
+
+---
+
+Option 2: Bridge Mode (Best)
+
+If Nexus can configure their ONT/router into Bridge Mode, then:
+
+Internet
+    │
+Fiber ONT (Bridge)
+    │
+Airtel Router
+    │
+Devices
+
+Now the Airtel router receives the public IP directly.
+
+Pros:
+
+No double NAT.
+
+Better performance.
+
+Easier to manage advanced networking.
+
+
+Cons:
+
+Nexus must support or enable bridge mode.
+
+
+
+---
+
+About MAC Filtering
+
+If your Airtel router supports:
+
+✅ MAC Whitelist
+
+✅ MAC Blacklist
+
+✅ Access Control
+
+✅ Parental Control
+
+
+then all of those features will work because every device connects to the Airtel router.
+
+Example:
+
+Allowed
+AA:11:22:33:44:55
+BB:22:33:44:55:66
+
+Blocked
+CC:33:44:55:66:77
+
+Only the allowed devices will have internet access.
+
+
+---
+
+But there is an even better solution
+
+Instead of using an Airtel router, consider a router designed for network management, such as:
+
+MikroTik
+
+TP-Link Omada
+
+Ubiquiti UniFi
+
+GL.iNet
+
+ASUS (higher-end models)
+
+
+These routers support much more than simple MAC filtering:
+
+User quotas
+
+Bandwidth limits per device
+
+Time-based access
+
+Captive portals
+
+VLANs
+
+Guest Wi-Fi
+
+Detailed traffic monitoring
+
+Better firewall controls
+
+
+A MikroTik router, for example, can limit each user to a specific speed (e.g., 5 Mbps), schedule internet access, and create much more sophisticated policies than most ISP-supplied routers.
+
+One important note
+
+MAC filtering is not a strong security mechanism. A knowledgeable user can change (spoof) their device's MAC address and bypass the restriction. If you need stronger control over who can use the network, a router that supports authentication (such as a captive portal or WPA2/WPA3 Enterprise) is a better choice.
+
+If your goal is to control who uses your home or office Wi-Fi, your idea will work. If your goal is to build a secure network for many users, investing in a dedicated router like a MikroTik or TP-Link Omada gateway will provide far more flexibility and security.
+The short answer is no, not in the way you're describing.
+
+The reason is that those features are implemented inside the router's operating system and hardware, not by an external application. An Airtel router (or most ISP-supplied routers) has firmware that exposes only the features the manufacturer chose to include.
+
+Here's what is and isn't possible.
+
+What you CANNOT do
+
+You cannot build a Windows/Linux application that magically gives an Airtel router:
+
+MikroTik RouterOS
+
+VLAN support (if the hardware/firmware doesn't support it)
+
+Queue trees and QoS
+
+Hotspot/voucher system
+
+Firewall chains
+
+Traffic shaping
+
+PPPoE server
+
+RADIUS integration
+
+Dynamic routing
+
+Layer 3 switching
+
+
+These functions require the router firmware to support them.
+
+Think of it like this:
+
+A basic calculator cannot become a scientific calculator just because a PC program is connected to it.
+
+The calculator itself lacks the hardware/software needed.
+
+
+The same applies to routers.
+
+
+---
+
+What you CAN do
+
+You can build a system that sits between the fiber connection and the Airtel router or even replaces the Airtel router as the network controller.
+
+For example:
+
+Internet
+                     │
+             Nexus Fiber ONT
+                     │
+             Linux Server / Mini PC
+        (Your Custom Network OS)
+                     │
+              Airtel Router (AP Mode)
+                     │
+                 Wi-Fi Clients
+
+Notice something important:
+
+The Airtel router is no longer acting as a router.
+
+It becomes only:
+
+Wi-Fi Access Point
+
+Ethernet Switch
+
+
+Your server becomes the real router.
+
+
+---
+
+This is exactly how many commercial hotspot systems work
+
+Many hotels and internet cafés use:
+
+Linux
+
+pfSense
+
+OPNsense
+
+MikroTik
+
+UniFi Gateway
+
+
+The Wi-Fi device is just broadcasting Wi-Fi.
+
+The gateway does all the intelligence.
+
+
+---
+
+Could YOU build that gateway?
+
+Yes.
+
+You can create a Linux-based gateway with:
+
+Ubuntu Server
+        │
+iptables/nftables
+        │
+tc (Traffic Control)
+        │
+hostapd
+        │
+FreeRADIUS
+        │
+CoovaChilli
+        │
+Your React Dashboard
+        │
+PostgreSQL
+
+Now your software controls everything.
+
+
+---
+
+Then your software can implement
+
+✅ Voucher system
+
+Voucher
+----------
+ABCD-1234
+5 GB
+Expires in 3 days
+
+
+---
+
+✅ Bandwidth control
+
+John
+Download: 5 Mbps
+Upload: 2 Mbps
+
+
+---
+
+✅ Time limit
+
+2 Hours Remaining
+
+
+---
+
+✅ Data limit
+
+Remaining
+4.2 GB
+
+
+---
+
+✅ Captive portal
+
+Connect Wi-Fi
+
+↓
+
+Open Browser
+
+↓
+
+Login Page
+
+↓
+
+Voucher
+
+↓
+
+Internet Enabled
+
+
+---
+
+✅ Device Management
+
+MAC Address
+
+Device Name
+
+Online
+
+Last Seen
+
+IP Address
+
+Usage
+
+
+---
+
+✅ Firewall Rules
+
+Facebook Blocked
+
+TikTok Allowed
+
+Torrent Blocked
+
+
+---
+
+✅ Live Monitoring
+
+Current Users
+
+Current Speed
+
+Top Downloads
+
+Top Uploaders
+
+History
+
+Daily Reports
+
+
+---
+
+Can you use the Airtel router for Wi-Fi?
+
+Yes.
+
+Disable:
+
+DHCP
+
+NAT
+
+Firewall
+
+
+Leave enabled:
+
+Wi-Fi
+
+LAN ports
+
+
+Now it is just an Access Point.
+
+Your Linux server becomes the actual router.
+
+
+---
+
+Could you make something as powerful as MikroTik?
+
+Absolutely.
+
+In fact, you can exceed MikroTik because you control the software.
+
+Many commercial systems are built this way.
+
+Examples include:
+
+pfSense
+
+OPNsense
+
+OpenWrt
+
+IPFire
+
+VyOS
+
+
+All are software routers.
+
+
+---
+
+If you want to build EVERYTHING yourself
+
+Then your project becomes a Network Operating System (Network OS).
+
+Its architecture could look like:
+
+React Admin
+                          │
+                     REST API
+                          │
+────────────────────────────────────────────
+
+ Authentication Service
+
+ Voucher Service
+
+ User Service
+
+ Billing Service
+
+ DHCP Service
+
+ DNS Service
+
+ Firewall Service
+
+ QoS Service
+
+ Captive Portal Service
+
+ RADIUS Service
+
+ PPPoE Service
+
+ VLAN Service
+
+ Monitoring Service
+
+ Reporting Service
+
+ AI Analytics Service
+
+────────────────────────────────────────────
+
+ nftables
+
+ tc
+
+ dnsmasq
+
+ hostapd
+
+ FreeRADIUS
+
+ iptables
+
+ Linux Kernel Networking
+
+────────────────────────────────────────────
+
+           Ethernet
+           Wi-Fi
+           Fiber
+
+This is no longer just a "hotspot system"—it's effectively creating your own router platform. It's a substantial software engineering project, but it's technically feasible.
+
+My recommendation
+
+Given your background and your interest in building advanced systems, I would not spend time trying to extend an Airtel router's firmware. Instead:
+
+Use the Airtel router only as a wireless access point.
+
+Build a Linux-based gateway (on a mini PC, x86 appliance, or Raspberry Pi-class device for small deployments).
+
+Implement the networking intelligence in your own software.
+
+Over time, you can add enterprise features like multi-tenant hotspot management, vouchers, billing, bandwidth policies, and monitoring.
+
+
+This approach gives you the flexibility to build a product that can work with almost any ISP (Nexus, Airtel, TTCL, Vodacom, Halotel, etc.) without depending on the limitations of the ISP's router. It also scales much better if your goal is eventually to offer a commercial hotspot or network management solution.
+
+Yes—but with an important distinction.
+
+You can build a system that provides all of those capabilities for a network that happens to use an Airtel router, but you cannot implant MikroTik RouterOS functionality into the Airtel router itself unless you can replace its firmware (which is generally not possible on ISP-provided routers).
+
+The difference is between:
+
+Adding capabilities to the router ❌ (generally impossible without replacing firmware)
+
+Moving those capabilities into your own gateway system ✅ (completely possible)
+
+
+
+---
+
+Think of it like this
+
+Your idea
+
+Airtel Router
+        + Your Software
+              ↓
+      Becomes MikroTik
+
+This is not possible because:
+
+Airtel firmware is closed-source.
+
+You cannot install your own kernel modules.
+
+You cannot add routing features that the firmware doesn't expose.
+
+You cannot control the internal packet-processing engine.
+
+
+It's like trying to install Windows Server features into a smart TV.
+
+
+---
+
+What IS possible
+
+You create your own Network Controller.
+
+Internet
+                        │
+                  Nexus Fiber ONT
+                        │
+             Your Network Controller
+        (Linux + Your Own Software)
+                        │
+                Airtel Router (AP)
+                        │
+                  Wi-Fi Devices
+
+Now the Airtel router is just a Wi-Fi radio.
+
+Everything intelligent happens inside your system.
+
+
+---
+
+Can your system have ALL MikroTik features?
+
+Yes.
+
+Actually, you can implement even more features than MikroTik, because you are writing the software yourself.
+
+For example:
+
+Authentication
+
+✔ Voucher login
+
+✔ Username/password
+
+✔ Social login
+
+✔ QR Code login
+
+✔ SMS login
+
+✔ School ID login
+
+
+---
+
+Billing
+
+✔ Time vouchers
+
+✔ Data vouchers
+
+✔ Monthly subscription
+
+✔ Daily packages
+
+✔ Weekly packages
+
+✔ Pay-as-you-go
+
+✔ Mobile Money integration
+
+
+---
+
+Bandwidth
+
+✔ Per-user speed
+
+John
+
+Download 5 Mbps
+
+Upload 2 Mbps
+
+✔ Group limits
+
+✔ Dynamic bandwidth
+
+✔ Burst speed
+
+✔ Priority queues
+
+
+---
+
+User Management
+
+Online Users
+
+MAC
+
+IP
+
+Hostname
+
+Speed
+
+Usage
+
+Last Seen
+
+Status
+
+
+---
+
+Captive Portal
+
+Exactly like hotels.
+
+Connect WiFi
+
+↓
+
+Open Browser
+
+↓
+
+Portal
+
+↓
+
+Voucher
+
+↓
+
+Internet
+
+
+---
+
+Guest Wi-Fi
+
+Office WiFi
+
+Staff WiFi
+
+Guest WiFi
+
+VIP WiFi
+
+
+---
+
+Firewall
+
+Block TikTok
+
+Block Porn
+
+Block Torrent
+
+Block Gaming
+
+Allow Office Apps
+
+Allow WhatsApp
+
+
+---
+
+Monitoring
+
+Today's Usage
+
+Monthly Usage
+
+Top Devices
+
+Most Visited Sites
+
+Bandwidth Graph
+
+Packet Loss
+
+Latency
+
+
+---
+
+Reports
+
+Revenue
+
+Active Users
+
+Voucher Sales
+
+Peak Hours
+
+Daily Users
+
+Expired Users
+
+
+---
+
+AI Features
+
+Since you're an AI developer:
+
+Imagine
+
+AI detects
+
+↓
+
+Bandwidth abuse
+
+↓
+
+Automatically limits user
+
+or
+
+AI notices
+
+↓
+
+Possible malware traffic
+
+↓
+
+Blocks device
+
+or
+
+AI predicts
+
+↓
+
+Internet congestion
+
+↓
+
+Automatically reallocates bandwidth
+
+MikroTik doesn't provide those kinds of AI-driven features out of the box.
+
+
+---
+
+Can it become a commercial product?
+
+Absolutely.
+
+You could build something similar to:
+
+MikroTik Hotspot
+
+UniFi Controller
+
+TP-Link Omada Controller
+
+pfSense
+
+OPNsense
+
+Cisco Meraki Dashboard
+
+
+but with your own interface and features.
+
+
+---
+
+Technologies you would use
+
+Instead of depending on the Airtel router, your system would control Linux networking.
+
+For example:
+
+Component	Purpose
+
+Linux Kernel	Routing
+nftables	Firewall
+tc	Bandwidth control
+dnsmasq or Kea	DHCP/DNS
+FreeRADIUS	Authentication
+CoovaChilli or your own portal	Captive portal
+PostgreSQL	Users & vouchers
+Redis	Sessions
+React	Dashboard
+Node.js/NestJS/Go	Backend
+Prometheus + Grafana (or your own dashboards)	Monitoring
+
+
+
+---
+
+The only feature that has hardware limits
+
+Some functions depend on the hardware.
+
+For example:
+
+VLAN
+
+If the Airtel router hardware cannot tag VLANs on its switch ports or Wi-Fi, your controller cannot make it do that. However, if your Linux gateway has multiple network interfaces or VLAN-capable NICs, it can create VLANs there and connect to managed switches or VLAN-aware access points.
+
+Similarly:
+
+Wi-Fi 6 support requires Wi-Fi 6 hardware.
+
+WPA3 requires hardware/firmware support.
+
+Multiple SSIDs depend on the access point's capabilities.
+
+Advanced roaming (802.11k/v/r) depends on the Wi-Fi hardware and firmware.
+
+
+Software cannot create hardware capabilities that don't exist.
+
+
+---
+
+My recommendation
+
+Given the kinds of systems you've been building (your school management platform, AI features, and SaaS ideas), I wouldn't try to "upgrade" an Airtel router.
+
+Instead, I would design a Linux-based Network Operating System that:
+
+Works with any ISP (Nexus, Airtel, TTCL, Vodacom, Halotel, etc.).
+
+Uses almost any Wi-Fi router in access-point mode.
+
+Provides enterprise features such as vouchers, quotas, bandwidth shaping, firewall rules, analytics, billing, and APIs.
+
+Can later run on a mini PC, x86 appliance, or dedicated hardware that you brand and sell.
+
+
+That approach is technically sound, scalable, and gives you full control over the network without being limited by the firmware of an ISP-supplied router.
+
+I actually think you're describing a different product category than a hotspot system.
+
+You're describing a multi-tenant Network Management Platform (NMS) or Network-as-a-Service (NaaS) platform.
+
+Instead of selling internet, you're selling the software that operates a customer's network.
+
+That is a legitimate business model.
+
+
+---
+
+What your customers would buy
+
+Suppose a school buys your product.
+
+The school already has:
+
+Nexus Fiber
+
+Airtel Fiber
+
+TTCL Fiber
+
+Starlink
+
+Vodacom Business
+
+
+You don't care which ISP they use.
+
+They install your gateway.
+
+ISP
+ │
+Fiber ONT
+ │
+Your Gateway
+ │
+Switches
+ │
+Access Points
+ │
+Teachers
+Students
+Staff
+Guests
+
+Now your software becomes the brain of their network.
+
+
+---
+
+This is SaaS
+
+Exactly like your School Management System.
+
+Instead of managing students,
+
+it manages
+
+internet
+
+users
+
+vouchers
+
+devices
+
+bandwidth
+
+policies
+
+
+
+---
+
+Multi-tenancy
+
+Just like your school system.
+
+Super Admin
+      │
+──────────────────────────
+
+School A
+
+School B
+
+Hotel C
+
+ISP D
+
+University E
+
+Office F
+
+Every customer has
+
+own database (or isolated tenant)
+
+own admin
+
+own employees
+
+own reports
+
+own vouchers
+
+
+No one sees another customer's data.
+
+
+---
+
+Example
+
+Suppose
+
+ABC Secondary School buys your software.
+
+They receive
+
+admin.abcschool.yourdomain.com
+
+Login
+
+Admin
+
+IT Manager
+
+Reception
+
+Finance
+
+Technician
+
+Everyone has permissions.
+
+
+---
+
+Hotel
+
+hotelxyz.yourdomain.com
+
+Hotel staff login.
+
+Generate vouchers.
+
+See connected guests.
+
+Limit bandwidth.
+
+Print receipts.
+
+
+---
+
+Internet Café
+
+cafenet.yourdomain.com
+
+Operator
+
+Manager
+
+Owner
+
+Each has different permissions.
+
+
+---
+
+You host everything
+
+Exactly like your School Management System.
+
+Customer does NOT install software.
+
+Customer simply opens
+
+portal.yourcompany.com
+
+and manages everything.
+
+The gateway communicates with your cloud.
+
+
+---
+
+Gateway
+
+The gateway runs inside customer premises.
+
+Cloud Dashboard
+        │
+ HTTPS
+        │
+Gateway
+        │
+Internet
+
+Gateway reports
+
+users
+
+traffic
+
+logs
+
+alarms
+
+
+Cloud sends
+
+firewall rules
+
+vouchers
+
+limits
+
+updates
+
+
+
+---
+
+Similar to UniFi
+
+Exactly how UniFi works.
+
+Cloud
+
+↓
+
+Controller
+
+↓
+
+Gateway
+
+↓
+
+Access Point
+
+↓
+
+Users
+
+Your controller can manage
+
+1000+
+
+gateways worldwide.
+
+
+---
+
+Revenue model
+
+You have many options.
+
+Monthly subscription
+
+School
+
+$20/month
+
+Hotel
+
+$40/month
+
+ISP
+
+$100/month
+
+
+---
+
+One-time purchase
+
+Software
+
+$500
+
+plus
+
+Support
+
+$10/month
+
+
+---
+
+White Label
+
+An ISP buys your software.
+
+They replace your logo.
+
+Sell under their own brand.
+
+You license it.
+
+
+---
+
+Employees
+
+Your customer might have
+
+Owner
+
+↓
+
+IT Manager
+
+↓
+
+Network Technician
+
+↓
+
+Cashier
+
+↓
+
+Reception
+
+Your RBAC (Role-Based Access Control) manages permissions.
+
+Example
+
+Cashier
+
+✅ Create vouchers
+
+❌ Delete users
+
+❌ Firewall
+
+
+---
+
+Technician
+
+✅ Routers
+
+✅ Devices
+
+❌ Finance
+
+
+---
+
+Owner
+
+Everything.
+
+
+---
+
+Even bigger idea
+
+Your system could become
+
+Network ERP
+
+Instead of only hotspot.
+
+Modules
+
+Dashboard
+
+Internet
+
+WiFi
+
+Users
+
+Devices
+
+Bandwidth
+
+Captive Portal
+
+Voucher
+
+Finance
+
+Employees
+
+Inventory
+
+Customers
+
+Support Tickets
+
+Reports
+
+AI Assistant
+
+Notifications
+
+Monitoring
+
+API
+
+Very similar to how your School Management System is modular.
+
+
+---
+
+AI
+
+Since you're already interested in AI.
+
+Imagine
+
+AI
+
+↓
+
+Customer says
+
+"My internet is slow."
+
+↓
+
+AI checks
+
+Gateway
+
+Bandwidth
+
+Packet Loss
+
+ISP latency
+
+Firewall
+
+↓
+
+Finds cause
+
+↓
+
+Suggests solution
+
+Or
+
+AI detects
+
+One device consuming
+
+90%
+
+of bandwidth
+
+↓
+
+Automatically limits it.
+
+Or
+
+AI predicts
+
+Fiber outage likely
+
+based on packet loss
+
+↓
+
+Alerts admin.
+
+
+---
+
+My biggest recommendation
+
+I would not market this as "a hotspot system."
+
+That immediately makes people think of a cyber café voucher application.
+
+What you're envisioning is much broader.
+
+It is closer to a cloud-managed network platform—software that lets organizations control and monitor their entire network regardless of which ISP they use.
+
+That opens up customers like:
+
+Schools
+
+Universities
+
+Hotels
+
+Hospitals
+
+Apartment complexes
+
+Offices
+
+Internet cafés
+
+Shopping malls
+
+Religious institutions
+
+Campsites
+
+Small ISPs and Wireless ISPs (WISPs)
+
+
+
+---
+
+One architectural recommendation
+
+I would split the platform into three major products:
+
+1. Cloud Controller (SaaS) – the multi-tenant web platform where customers manage networks, employees, vouchers, billing, analytics, and policies.
+
+
+2. Edge Gateway – software that runs on-site (mini PC, x86 appliance, or dedicated hardware) and actually performs routing, firewalling, QoS, captive portal, and traffic enforcement.
+
+
+3. Access Point Layer – standard Wi-Fi access points (Airtel router in AP mode, TP-Link, Ubiquiti, MikroTik APs, etc.) that simply provide wireless connectivity.
+
+
+
+This separation is the same architectural principle used by many enterprise networking vendors because it scales well, works with multiple hardware vendors, and lets you continuously improve the cloud platform without replacing customer hardware.
+
+Given the scale of your vision, this is not just a software project—it is a network operating platform. If you build it well, it can evolve into a commercial product comparable in architecture to solutions from UniFi, Omada, Meraki, or Aruba Central, while allowing you to innovate with AI and integrations that those platforms may not offer.
+
+This is one of the most important architectural decisions you'll make.
+
+The answer is:
+
+> They are one product, but composed of multiple components (services).
+
+
+
+Think of your School Management System.
+
+It isn't one file. It has:
+
+Frontend
+
+Backend
+
+Database
+
+Storage
+
+AI service
+
+Notification service
+
+Authentication
+
+
+Yet you still call it one product.
+
+Your network platform is the same.
+
+
+---
+
+The complete product
+
+Your Network Operating Platform
+                    (One Product)
+
+Inside it are several major components.
+
+SaaS Platform
+                          │
+        ┌─────────────────┼─────────────────┐
+        │                 │                 │
+ Cloud Controller    Edge Gateway     Mobile App
+        │                 │
+        └──────────────┬──┘
+                       │
+               Access Points
+                       │
+                   End Users
+
+Everything belongs to one ecosystem.
+
+
+---
+
+Think of UniFi
+
+UniFi is one product.
+
+But internally it contains:
+
+UniFi Controller
+
+UniFi Gateway
+
+UniFi Access Point
+
+UniFi Switch
+
+UniFi Protect
+
+UniFi Talk
+
+
+They're separate software and hardware components, but customers experience them as one platform.
+
+
+---
+
+Same for your system
+
+Let's give it a temporary name:
+
+NetMaster
+
+NetMaster contains:
+
+1. Cloud Controller
+
+Runs on your servers.
+
+Customers log in here.
+
+cloud.netmaster.com
+
+Functions:
+
+Dashboard
+
+Reports
+
+Employees
+
+Billing
+
+AI
+
+Monitoring
+
+Updates
+
+Licensing
+
+Customers
+
+Inventory
+
+
+
+---
+
+2. Edge Gateway
+
+Runs at the customer's location.
+
+Mini PC
+
+or
+
+x86 Appliance
+
+or
+
+Raspberry Pi (small sites)
+
+Responsibilities:
+
+Routing
+
+NAT
+
+Firewall
+
+QoS
+
+Captive Portal
+
+DHCP
+
+DNS
+
+VLANs
+
+VPN
+
+Traffic monitoring
+
+
+This is where packets actually flow.
+
+
+---
+
+3. Access Point Layer
+
+This isn't software.
+
+It's hardware.
+
+Examples:
+
+TP-Link AP
+
+UniFi AP
+
+Airtel Router (AP mode)
+
+MikroTik AP
+
+OpenWrt AP
+
+
+Its job is simply to provide Wi-Fi.
+
+
+---
+
+Should they be separate repositories?
+
+I would recommend:
+
+github.com/yourcompany
+
+network-cloud
+
+network-gateway
+
+network-mobile
+
+network-agent
+
+network-docs
+
+network-sdk
+
+Each component evolves independently.
+
+
+---
+
+MVP
+
+Now comes the important part.
+
+Do NOT build everything at once.
+
+Start with an MVP.
+
+MVP 1
+
+Cloud Controller
+
+
+Gateway
+
+Only.
+
+No AI.
+
+No mobile app.
+
+No billing.
+
+Just:
+
+Dashboard
+
+↓
+
+Gateway
+
+↓
+
+Internet
+
+Features:
+
+✔ Login
+
+✔ Users
+
+✔ Devices
+
+✔ Connected Clients
+
+✔ Bandwidth
+
+✔ Firewall
+
+✔ Captive Portal
+
+✔ Voucher
+
+✔ Reports
+
+That's already a usable commercial product.
+
+
+---
+
+MVP 2
+
+Add
+
+Billing
+
+Mobile Money
+
+Employees
+
+Permissions
+
+Customer management
+
+Alerts
+
+
+
+---
+
+MVP 3
+
+Add
+
+AI
+
+Predictive monitoring
+
+Auto troubleshooting
+
+Analytics
+
+Multi-WAN
+
+VPN
+
+API
+
+
+
+---
+
+MVP 4
+
+Enterprise
+
+Multi-site
+
+SD-WAN
+
+Mesh
+
+HA clusters
+
+Zero Trust
+
+NAC
+
+Cloud backup
+
+
+
+---
+
+A better architecture
+
+I would actually split it into six major services.
+
+Platform
+
+│
+
+├── Cloud Controller
+
+├── Gateway OS
+
+├── Gateway Agent
+
+├── Mobile App
+
+├── API
+
+└── AI Engine
+
+Notice
+
+Gateway OS
+
+is different from
+
+Gateway Agent.
+
+The OS controls networking.
+
+The Agent talks to the cloud.
+
+
+---
+
+Gateway Agent
+
+Runs in the background.
+
+Cloud
+
+↓
+
+HTTPS/WebSocket
+
+↓
+
+Gateway Agent
+
+↓
+
+Gateway OS
+
+It receives
+
+firewall rules
+
+updates
+
+bandwidth limits
+
+
+and sends
+
+logs
+
+traffic
+
+health
+
+statistics
+
+
+
+---
+
+Long-term vision
+
+Eventually your architecture could look like this:
+
+Cloud Platform
+
+            Authentication
+
+            Tenant Service
+
+            Billing
+
+            Notification
+
+            AI
+
+            API
+
+            Monitoring
+
+            Licensing
+
+            Analytics
+
+                   │
+
+          Secure Connection
+
+                   │
+
+          Gateway Agent
+
+                   │
+
+            Gateway OS
+
+                   │
+
+             Switches
+
+             Access Points
+
+             Clients
+
+This is the kind of architecture used by enterprise networking platforms because it cleanly separates cloud management, on-site packet processing, and hardware integration.
+
+If I were leading this project
+
+Given the scale of what you're envisioning, I would organize it as:
+
+One product
+
+6–10 independent services
+
+Separate Git repositories
+
+One unified web dashboard
+
+One shared API
+
+One licensing system
+
+One installer for the gateway
+
+One mobile app
+
+
+That approach lets you release an MVP quickly while keeping the architecture flexible enough to grow into an enterprise-grade networking platform over time.

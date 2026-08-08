@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------ */
+/* NetMaster Design Tokens — iOS-Native Light Glassmorphism            */
+/* See docs/project documentation/03-UI_DESIGN_SYSTEM.md               */
+/* ------------------------------------------------------------------ */
+
+:root {
+  /* Background */
+  --bg-base: #f2f4f8;
+  --bg-gradient: linear-gradient(160deg, #f6f8fc 0%, #eceff6 45%, #e7ebf5 100%);
+  --bg-elevated: #ffffff;
+
+  /* Glass surfaces */
+  --glass-surface: rgba(255, 255, 255, 0.55);
+  --glass-surface-strong: rgba(255, 255, 255, 0.72);
+  --glass-surface-subtle: rgba(255, 255, 255, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-blur: blur(20px);
+  --glass-blur-strong: blur(32px);
+
+  /* Accent colors */
+  --accent-blue: #0a84ff;
+  --accent-green: #30d158;
+  --accent-orange: #ff9f0a;
+  --accent-red: #ff453a;
+  --accent-purple: #bf5af2;
+  --accent-teal: #40c8e0;
+
+  /* Text */
+  --text-primary: #1c1c1e;
+  --text-secondary: #6e6e73;
+  --text-tertiary: #aeaeb2;
+  --text-on-accent: #ffffff;
+
+  /* Status */
+  --status-active: var(--accent-green);
+  --status-pending: var(--accent-orange);
+  --status-suspended: var(--accent-red);
+  --status-offline: #8e8e93;
+
+  /* Typography */
+  --text-large-title: 34px;
+  --text-title-1: 28px;
+  --text-title-2: 22px;
+  --text-title-3: 20px;
+  --text-body: 17px;
+  --text-callout: 15px;
+  --text-footnote: 13px;
+  --text-caption: 12px;
+
+  /* Spacing (4pt / 8pt grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+
+  /* Radius */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(30, 41, 59, 0.04), 0 1px 1px rgba(30, 41, 59, 0.03);
+  --shadow-md: 0 8px 24px rgba(30, 41, 59, 0.08);
+  --shadow-lg: 0 16px 40px rgba(30, 41, 59, 0.12);
+
+  /* Motion */
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-fast: 180ms;
+  --duration-base: 280ms;
+}
+
+/* Tailwind v4 theme mapping so components use utility classes */
+@theme inline {
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-green: var(--accent-green);
+  --color-accent-orange: var(--accent-orange);
+  --color-accent-red: var(--accent-red);
+  --color-accent-purple: var(--accent-purple);
+  --color-accent-teal: var(--accent-teal);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-on-accent: var(--text-on-accent);
+
+  --color-status-active: var(--status-active);
+  --color-status-pending: var(--status-pending);
+  --color-status-suspended: var(--status-suspended);
+  --color-status-offline: var(--status-offline);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-pill: var(--radius-pill);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+}
