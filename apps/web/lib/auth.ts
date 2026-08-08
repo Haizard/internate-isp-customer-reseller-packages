@@ -18,6 +18,7 @@ export interface LoginResult {
 }
 
 const TOKEN_KEY = "netmaster_token";
+const REFRESH_KEY = "netmaster_refresh_token";
 const USER_KEY = "netmaster_user";
 
 export function getToken(): string | null {
@@ -39,12 +40,14 @@ export function getStoredUser(): SessionUser | null {
 export async function login(email: string, password: string): Promise<LoginResult> {
   const result = await api.post<LoginResult>("/auth/login", { email, password });
   window.localStorage.setItem(TOKEN_KEY, result.accessToken);
+  window.localStorage.setItem(REFRESH_KEY, result.refreshToken);
   window.localStorage.setItem(USER_KEY, JSON.stringify(result.user));
   return result;
 }
 
 export function logout(): void {
   window.localStorage.removeItem(TOKEN_KEY);
+  window.localStorage.removeItem(REFRESH_KEY);
   window.localStorage.removeItem(USER_KEY);
   window.location.href = "/login";
 }
@@ -52,6 +55,7 @@ export function logout(): void {
 export function dashboardPathFor(role: string): string {
   switch (role) {
     case "PLATFORM_OWNER":
+      return "/admin/dashboard";
     case "ISP_ADMIN":
       return "/dashboard";
     case "RESELLER":

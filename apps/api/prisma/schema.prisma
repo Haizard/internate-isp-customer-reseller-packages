@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -129,6 +130,7 @@ model Package {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   subscriptions  Subscription[]
+  bandwidthRules BandwidthRule[]
 
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
@@ -137,6 +139,25 @@ model Package {
 
   @@index([organizationId])
   @@map("packages")
+}
+
+// Bandwidth rule templates attached to a package (stored only — no live enforcement in MVP)
+model BandwidthRule {
+  id             String  @id @default(uuid()) @map("id")
+  name           String
+  downloadMbps   Int
+  uploadMbps     Int
+  priority       Int     @default(0)
+  packageId      String
+  package        Package @relation(fields: [packageId], references: [id])
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdByUserId String? @map("created_by_user_id")
+  updatedByUserId String? @map("updated_by_user_id")
+
+  @@index([packageId])
+  @@map("bandwidth_rules")
 }
 
 model Customer {
@@ -176,6 +197,11 @@ model Subscription {
   startedAt    DateTime @default(now()) @map("started_at")
   renewsAt     DateTime? @map("renews_at")
 
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdByUserId String? @map("created_by_user_id")
+  updatedByUserId String? @map("updated_by_user_id")
+
   @@index([packageId])
   @@map("subscriptions")
 }
@@ -191,6 +217,9 @@ model Voucher {
   usedByCustomerId String?
   expiresAt      DateTime?
   createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  createdByUserId String? @map("created_by_user_id")
+  updatedByUserId String? @map("updated_by_user_id")
 
   @@index([organizationId, status])
   @@map("vouchers")
@@ -203,6 +232,11 @@ model Device {
   macAddress  String
   deviceName  String?
   lastSeenAt  DateTime? @map("last_seen_at")
+
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdByUserId String? @map("created_by_user_id")
+  updatedByUserId String? @map("updated_by_user_id")
 
   @@index([customerId])
   @@map("devices")
@@ -230,6 +264,11 @@ model UsageRecord {
   day         DateTime @map("day")
   bytesUsed   BigInt   @map("bytes_used") @default(0)
 
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  createdByUserId String? @map("created_by_user_id")
+  updatedByUserId String? @map("updated_by_user_id")
+
   @@index([customerId, day])
   @@map("usage_records")
 }
@@ -243,6 +282,8 @@ model ServiceRequest {
   customer     Customer @relation(fields: [customerId], references: [id])
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
+  createdByUserId String? @map("created_by_user_id")
+  updatedByUserId String? @map("updated_by_user_id")
 
   @@index([customerId])
   @@map("service_requests")

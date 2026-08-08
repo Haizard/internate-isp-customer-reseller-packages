@@ -34,7 +34,12 @@ export class CustomersService {
       });
       if (pkg) {
         await prisma.subscription.create({
-          data: { customerId: customer.id, packageId: pkg.id },
+          data: {
+            customerId: customer.id,
+            packageId: pkg.id,
+            createdByUserId: actorUserId,
+            updatedByUserId: actorUserId,
+          },
         });
       }
     }
@@ -172,12 +177,14 @@ export class CustomersService {
     return updated;
   }
 
-  async createRequest(customerId: string, input: CreateRequestInput) {
+  async createRequest(customerId: string, input: CreateRequestInput, actorUserId: string | null = null) {
     return prisma.serviceRequest.create({
       data: {
         type: input.type,
         message: input.message ?? null,
         customerId,
+        createdByUserId: actorUserId,
+        updatedByUserId: actorUserId,
       },
     });
   }

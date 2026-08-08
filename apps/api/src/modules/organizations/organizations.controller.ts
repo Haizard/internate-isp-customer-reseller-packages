@@ -52,4 +52,13 @@ export class OrganizationsController {
       next(err);
     }
   }
+
+  async platformOverview(req: Request, res: Response, next: NextFunction) {
+    try {
+      const stats = await service.platformOverview();
+      res.json({ data: stats });
+    } catch (err) {
+      next(err);
+    }
+  }
 }

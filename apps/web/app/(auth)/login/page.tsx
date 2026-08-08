@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { login } from "@/lib/auth";
+import { login, dashboardPathFor } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
@@ -21,13 +21,7 @@ export default function LoginPage() {
     setError(null);
     try {
       const result = await login(email, password);
-      const path =
-        result.user.role === "CUSTOMER"
-          ? "/customer/dashboard"
-          : result.user.role === "RESELLER"
-            ? "/reseller/dashboard"
-            : "/dashboard";
-      router.push(path);
+      router.push(dashboardPathFor(result.user.role));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {

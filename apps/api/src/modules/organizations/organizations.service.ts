@@ -80,12 +80,42 @@ export class OrganizationsService {
   }
 
   async overview(orgIds: string[]) {
-    const [resellers, locations, routers, customers] = await Promise.all([
+    const [resellers, locations, routers, customers, activeCustomers] = await Promise.all([
       prisma.organization.count({ where: { id: { in: orgIds }, type: "RESELLER" } }),
       prisma.location.count({ where: { organizationId: { in: orgIds } } }),
       prisma.router.count({ where: { location: { organizationId: { in: orgIds } } } }),
-      prisma.customer.count({ where: { organizationId: { in: orgIds } } }),
+      prisma.customer.count({ where: { organizationId: { in: orgIds }, deletedAt: null } }),
+      prisma.customer.count({ where: { organizationId: { in: orgIds }, deletedAt: null, status: "ACTIVE" } }),
     ]);
-    return { resellers, locations, routers, customers };
+    const mrr = await this.mrrCents(orgIds);
+    return { resellers, locations, routers, customers, activeCustomers, mrrCents: mrr };
+  }
+
+  async mrrCents(orgIds: string[]) {
+    const where =
+      orgIds.length === 0
+        ? { deletedAt: null, status: "ACTIVE" as const }
+        : { organizationId: { in: orgIds }, deletedAt: null, status: "ACTIVE" as const };
+    const subscriptions = await prisma.subscription.findMany({
+      where: { customer: where },
+      include: { package: true },
+    });
+    return subscriptions.reduce((sum, s) => sum + (s.package?.priceCents ?? 0), 0);
+  }
+
+  async platformOverview() {
+    const [isps, resellers, locations, routers, customers, activeCustomers, users, vouchers, mrr] =
+      await Promise.all([
+        prisma.organization.count({ where: { type: "ISP" } }),
+        prisma.organization.count({ where: { type: "RESELLER" } }),
+        prisma.location.count(),
+        prisma.router.count(),
+        prisma.customer.count({ where: { deletedAt: null } }),
+        prisma.customer.count({ where: { deletedAt: null, status: "ACTIVE" } }),
+        prisma.user.count(),
+        prisma.voucher.count(),
+        this.mrrCents([]),
+      ]);
+    return { isps, resellers, locations, routers, customers, activeCustomers, users, vouchers, mrrCents: mrr };
   }
 }

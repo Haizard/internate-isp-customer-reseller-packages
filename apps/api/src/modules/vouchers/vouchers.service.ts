@@ -26,6 +26,8 @@ export class VouchersService {
           dataGb: input.dataGb ?? null,
           durationHours: input.durationHours ?? null,
           expiresAt,
+          createdByUserId: actorUserId,
+          updatedByUserId: actorUserId,
         },
       });
       vouchers.push(voucher);

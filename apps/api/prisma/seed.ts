@@ -124,6 +124,41 @@ async function main() {
     },
   });
 
+  // Bandwidth rule templates per package (stored only, no live enforcement in MVP)
+  const bandwidthRules = [
+    {
+      id: "00000000-0000-4000-8000-000000000020",
+      name: "Business Hours Throttle",
+      downloadMbps: 10,
+      uploadMbps: 5,
+      priority: 1,
+      packageId: pkg1.id,
+    },
+    {
+      id: "00000000-0000-4000-8000-000000000021",
+      name: "Off-Peak Boost",
+      downloadMbps: 25,
+      uploadMbps: 10,
+      priority: 0,
+      packageId: pkg1.id,
+    },
+    {
+      id: "00000000-0000-4000-8000-000000000022",
+      name: "Peak Time Priority",
+      downloadMbps: 40,
+      uploadMbps: 20,
+      priority: 2,
+      packageId: pkg2.id,
+    },
+  ];
+  for (const rule of bandwidthRules) {
+    await prisma.bandwidthRule.upsert({
+      where: { id: rule.id },
+      update: {},
+      create: rule,
+    });
+  }
+
   // 3 Customers on the reseller's router
   const customers = [
     { id: "00000000-0000-4000-8000-000000000010", name: "John Mushi", phone: "255712000001", wifiSsid: "John_WiFi", wifiPassword: "john1234", status: "ACTIVE" as const, packageId: pkg1.id },

@@ -40,7 +40,7 @@ export function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: 
       aria-checked={checked}
       role="switch"
       className={`w-[51px] h-[31px] rounded-pill relative transition-colors duration-[280ms] ${
-        checked ? "bg-[#30D158]" : "bg-black/15"
+        checked ? "bg-accent-green" : "bg-black/15"
       }`}
     >
       <span

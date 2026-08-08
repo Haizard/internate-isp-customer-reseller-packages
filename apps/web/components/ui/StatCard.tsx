@@ -9,11 +9,11 @@ interface StatCardProps {
 }
 
 const accents = {
-  blue: "bg-[rgba(10,132,255,0.15)] text-[#0A84FF]",
-  purple: "bg-[rgba(191,90,242,0.15)] text-[#BF5AF2]",
-  teal: "bg-[rgba(64,200,224,0.15)] text-[#40C8E0]",
-  green: "bg-[rgba(48,209,88,0.15)] text-[#30D158]",
-  orange: "bg-[rgba(255,159,10,0.15)] text-[#FF9F0A]",
+  blue: "bg-accent-blue/15 text-accent-blue",
+  purple: "bg-accent-purple/15 text-accent-purple",
+  teal: "bg-accent-teal/15 text-accent-teal",
+  green: "bg-accent-green/15 text-accent-green",
+  orange: "bg-accent-orange/15 text-accent-orange",
 };
 
 export function StatCard({ label, value, icon, accent = "blue", sub }: StatCardProps) {

@@ -3,13 +3,13 @@ import type { ReactNode } from "react";
 type BadgeTone = "green" | "orange" | "red" | "gray" | "blue" | "purple" | "teal";
 
 const tones: Record<BadgeTone, string> = {
-  green: "bg-[rgba(48,209,88,0.15)] text-[#30D158]",
-  orange: "bg-[rgba(255,159,10,0.15)] text-[#FF9F0A]",
-  red: "bg-[rgba(255,69,58,0.15)] text-[#FF453A]",
-  gray: "bg-[rgba(142,142,147,0.15)] text-[#8E8E93]",
-  blue: "bg-[rgba(10,132,255,0.15)] text-[#0A84FF]",
-  purple: "bg-[rgba(191,90,242,0.15)] text-[#BF5AF2]",
-  teal: "bg-[rgba(64,200,224,0.15)] text-[#40C8E0]",
+  green: "bg-accent-green/15 text-accent-green",
+  orange: "bg-accent-orange/15 text-accent-orange",
+  red: "bg-accent-red/15 text-accent-red",
+  gray: "bg-status-offline/15 text-status-offline",
+  blue: "bg-accent-blue/15 text-accent-blue",
+  purple: "bg-accent-purple/15 text-accent-purple",
+  teal: "bg-accent-teal/15 text-accent-teal",
 };
 
 export function statusTone(status: string): BadgeTone {

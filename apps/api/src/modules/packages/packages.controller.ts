@@ -1,6 +1,11 @@
 import type { NextFunction, Request, Response } from "express";
 import { PackagesService } from "./packages.service";
-import { createPackageSchema, updatePackageSchema } from "./packages.dto";
+import {
+  createPackageSchema,
+  updatePackageSchema,
+  createBandwidthRuleSchema,
+  updateBandwidthRuleSchema,
+} from "./packages.dto";
 
 const service = new PackagesService();
 
@@ -38,6 +43,35 @@ export class PackagesController {
     try {
       const data = await service.popularity(req.orgIds ?? []);
       res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async listRules(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await service.listRules(req.params.id, req.orgIds ?? []);
+      res.json({ data });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async createRule(req: Request, res: Response, next: NextFunction) {
+    try {
+      const input = createBandwidthRuleSchema.parse(req.body);
+      const rule = await service.createRule(req.params.id, input, req.orgIds ?? [], req.auth!.id);
+      res.status(201).json({ data: rule });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async updateRule(req: Request, res: Response, next: NextFunction) {
+    try {
+      const input = updateBandwidthRuleSchema.parse(req.body);
+      const rule = await service.updateRule(req.params.ruleId, input, req.orgIds ?? [], req.auth!.id);
+      res.json({ data: rule });
     } catch (err) {
       next(err);
     }

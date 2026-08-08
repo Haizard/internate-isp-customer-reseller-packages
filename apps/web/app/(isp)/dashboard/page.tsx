@@ -16,6 +16,8 @@ interface Overview {
   locations: number;
   routers: number;
   customers: number;
+  activeCustomers: number;
+  mrrCents: number;
 }
 
 interface Reseller {
@@ -43,7 +45,7 @@ export default function IsDashboard() {
         <StatCard label="Resellers" value={stats.resellers} icon={<Icon name="users" />} accent="blue" />
         <StatCard label="Customers" value={stats.customers} icon={<Icon name="users" />} accent="purple" />
         <StatCard label="Routers" value={stats.routers} icon={<Icon name="router" />} accent="teal" />
-        <StatCard label="Locations" value={stats.locations} icon={<Icon name="location" />} accent="green" />
+        <StatCard label="MRR" value={formatCents(stats.mrrCents)} icon={<Icon name="credit" />} accent="green" sub={`${stats.activeCustomers} active subscriptions`} />
       </div>
 
       <Card className="p-1">
@@ -62,7 +64,7 @@ export default function IsDashboard() {
                 title={r.name}
                 subtitle={`${r._count?.locations ?? 0} locations · ${r._count?.customers ?? 0} customers`}
                 leading={
-                  <div className="w-9 h-9 rounded-full bg-[rgba(191,90,242,0.15)] text-accent-purple flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-full bg-accent-purple/15 text-accent-purple flex items-center justify-center">
                     <Icon name="users" size={18} />
                   </div>
                 }
