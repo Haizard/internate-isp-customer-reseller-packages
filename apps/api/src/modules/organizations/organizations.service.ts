@@ -100,7 +100,10 @@ export class OrganizationsService {
       where: { customer: where },
       include: { package: true },
     });
-    return subscriptions.reduce((sum, s) => sum + (s.package?.priceCents ?? 0), 0);
+    return subscriptions.reduce(
+      (sum: number, subscription) => sum + (subscription.package?.priceCents ?? 0),
+      0,
+    );
   }
 
   async platformOverview() {

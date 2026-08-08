@@ -74,7 +74,10 @@ export class CustomersController {
     try {
       const usage = await service.usage(req.customerId!);
       res.json({
-        data: usage.map((u) => ({ ...u, bytesUsed: u.bytesUsed.toString() })),
+        data: usage.map((record: { id: string; customerId: string; day: Date; bytesUsed: bigint }) => ({
+          ...record,
+          bytesUsed: record.bytesUsed.toString(),
+        })),
       });
     } catch (err) {
       next(err);

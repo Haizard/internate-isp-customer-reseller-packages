@@ -9,13 +9,13 @@ export class ReportsService {
         locations: { select: { id: true } },
       },
     });
-    return resellers.map((r) => ({
-      id: r.id,
-      name: r.name,
-      status: r.status,
-      customers: r.customers.length,
-      activeCustomers: r.customers.filter((c) => c.status === "ACTIVE").length,
-      locations: r.locations.length,
+    return resellers.map((reseller: (typeof resellers)[number]) => ({
+      id: reseller.id,
+      name: reseller.name,
+      status: reseller.status,
+      customers: reseller.customers.length,
+      activeCustomers: reseller.customers.filter((customer) => customer.status === "ACTIVE").length,
+      locations: reseller.locations.length,
     }));
   }
 
@@ -43,12 +43,15 @@ export class ReportsService {
         },
       },
     });
-    return resellers.map((r) => {
-      const monthly = r.customers.reduce((sum, c) => sum + (c.subscription?.package.priceCents ?? 0), 0);
+    return resellers.map((reseller: (typeof resellers)[number]) => {
+      const monthly = reseller.customers.reduce(
+        (sum: number, customer) => sum + (customer.subscription?.package.priceCents ?? 0),
+        0,
+      );
       return {
-        id: r.id,
-        name: r.name,
-        activeCustomers: r.customers.length,
+        id: reseller.id,
+        name: reseller.name,
+        activeCustomers: reseller.customers.length,
         monthlyRevenueCents: monthly,
       };
     });

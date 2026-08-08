@@ -40,9 +40,9 @@ export class RoutersService {
       },
       orderBy: { createdAt: "desc" },
     });
-    return routers.map((r) => ({
-      ...r,
-      customerCount: r._count.customers,
+    return routers.map((router: (typeof routers)[number]) => ({
+      ...router,
+      customerCount: router._count.customers,
     }));
   }
 

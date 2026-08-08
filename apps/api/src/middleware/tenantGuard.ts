@@ -15,7 +15,7 @@ export async function resolveOrgScope(organizationId: string): Promise<string[]>
       where: { parentOrgId: organizationId },
       select: { id: true },
     });
-    return [org.id, ...children.map((c) => c.id)];
+    return [org.id, ...children.map((child: { id: string }) => child.id)];
   }
   return [org.id];
 }
