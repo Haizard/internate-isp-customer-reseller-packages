@@ -22,7 +22,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/apps/web/$1"
+      "dest": "/apps/web"
     }
   ]
 }
