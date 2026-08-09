@@ -3,15 +3,17 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 vi.mock("../../../prisma/client", () => ({
   prisma: {
     customer: { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+    user: { findUnique: vi.fn(), create: vi.fn() },
     router: { findFirst: vi.fn() },
     package: { findFirst: vi.fn() },
     subscription: { create: vi.fn() },
-    voucher: { findUnique: vi.fn(), update: vi.fn() },
+    voucher: { findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
     device: { findMany: vi.fn() },
     usageRecord: { findMany: vi.fn() },
     serviceRequest: { create: vi.fn(), findMany: vi.fn() },
     organization: { findUnique: vi.fn() },
     auditLog: { create: vi.fn() },
+    $transaction: vi.fn(),
   },
 }));
 
@@ -37,10 +39,13 @@ describe("CustomersService.create", () => {
 
   it("creates a customer with audit fields and an optional subscription", async () => {
     vi.mocked(prisma.router.findFirst).mockResolvedValue({ id: "router-1" } as never);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(null as never);
+    vi.mocked(prisma.user.create).mockResolvedValue({} as never);
     vi.mocked(prisma.customer.create).mockResolvedValue({ id: "cust-1", name: "New" } as never);
     vi.mocked(prisma.package.findFirst).mockResolvedValue({ id: "pkg-1" } as never);
     vi.mocked(prisma.subscription.create).mockResolvedValue({} as never);
     vi.mocked(prisma.auditLog.create).mockResolvedValue({} as never);
+    vi.mocked(prisma.$transaction).mockImplementation(async (callback) => callback(prisma as never) as never);
 
     await service.create(
       { name: "New", phone: "255700000000", routerId: "router-1", packageId: "pkg-1" },
@@ -67,19 +72,22 @@ describe("CustomersService.create", () => {
 
 describe("CustomersService.redeemVoucher", () => {
   it("rejects a used voucher", async () => {
-    vi.mocked(prisma.voucher.findUnique).mockResolvedValue({ id: "v-1", status: "USED" } as never);
+    vi.mocked(prisma.customer.findUnique).mockResolvedValue({ id: "cust-1", organizationId: "org-1", subscription: null } as never);
+    vi.mocked(prisma.voucher.findFirst).mockResolvedValue({ id: "v-1", status: "USED" } as never);
     await expect(service.redeemVoucher("cust-1", { code: "ABCD-1234" })).rejects.toBeInstanceOf(AppError);
   });
 
   it("marks an unused voucher as USED", async () => {
-    vi.mocked(prisma.voucher.findUnique).mockResolvedValue({ id: "v-1", status: "UNUSED" } as never);
+    vi.mocked(prisma.customer.findUnique).mockResolvedValue({ id: "cust-1", organizationId: "org-1", subscription: null } as never);
+    vi.mocked(prisma.voucher.findFirst).mockResolvedValue({ id: "v-1", status: "UNUSED" } as never);
     vi.mocked(prisma.voucher.update).mockResolvedValue({ id: "v-1", status: "USED" } as never);
     vi.mocked(prisma.auditLog.create).mockResolvedValue({} as never);
+    vi.mocked(prisma.$transaction).mockImplementation(async (callback) => callback(prisma as never) as never);
 
     const result = await service.redeemVoucher("cust-1", { code: "ABCD-1234" });
 
     expect(prisma.voucher.update).toHaveBeenCalledWith({
-      where: { id: "v-1" },
+      where: { id: "v-1", status: "UNUSED" },
       data: { status: "USED", usedByCustomerId: "cust-1" },
     });
     expect(result.status).toBe("USED");

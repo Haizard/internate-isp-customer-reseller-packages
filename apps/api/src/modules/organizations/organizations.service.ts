@@ -49,8 +49,10 @@ export class OrganizationsService {
     return resellers;
   }
 
-  async updateStatus(id: string, input: UpdateOrgStatusInput, actorUserId: string) {
-    const before = await prisma.organization.findUnique({ where: { id } });
+  async updateStatus(id: string, input: UpdateOrgStatusInput, actorUserId: string, orgIds?: string[]) {
+    const before = await prisma.organization.findFirst({
+      where: { id: { equals: id, ...(orgIds?.length ? { in: orgIds } : {}) } },
+    });
     if (!before) throw new AppError(404, "Organization not found");
     const org = await prisma.organization.update({
       where: { id },

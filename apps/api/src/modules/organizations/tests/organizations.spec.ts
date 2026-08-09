@@ -2,7 +2,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 
 vi.mock("../../../prisma/client", () => ({
   prisma: {
-    organization: { create: vi.fn(), findMany: vi.fn(), count: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+    organization: { create: vi.fn(), findMany: vi.fn(), count: vi.fn(), findUnique: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
     location: { count: vi.fn() },
     router: { count: vi.fn() },
     customer: { count: vi.fn() },
@@ -118,7 +118,7 @@ describe("OrganizationsService.create", () => {
 
 describe("OrganizationsService.updateStatus", () => {
   it("throws 404 for a missing organization", async () => {
-    vi.mocked(prisma.organization.findUnique).mockResolvedValue(null as never);
+    vi.mocked(prisma.organization.findFirst).mockResolvedValue(null as never);
     await expect(service.updateStatus("org-x", { status: "ACTIVE" }, actorId)).rejects.toBeInstanceOf(
       AppError,
     );

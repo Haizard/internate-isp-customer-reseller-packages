@@ -3,6 +3,8 @@ import { z } from "zod";
 export const createCustomerSchema = z.object({
   name: z.string().min(1),
   phone: z.string().min(1),
+  email: z.string().email().optional(),
+  password: z.string().min(6).optional(),
   routerId: z.string().min(1),
   packageId: z.string().optional(),
   wifiSsid: z.string().optional().nullable(),

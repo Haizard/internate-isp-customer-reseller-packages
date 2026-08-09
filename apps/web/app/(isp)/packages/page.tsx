@@ -28,6 +28,7 @@ export default function PackagesPage() {
   const { data, loading, error, reload } = useApi<Pkg[]>("/packages");
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   if (loading) return <LoadingState />;
@@ -37,9 +38,11 @@ export default function PackagesPage() {
   async function createPackage() {
     setBusy(true);
     try {
-      await api.post("/packages", form);
+      if (editingId) await api.patch(`/packages/${editingId}`, form);
+      else await api.post("/packages", form);
       setOpen(false);
       setForm(emptyForm);
+      setEditingId(null);
       reload();
     } finally {
       setBusy(false);
@@ -78,12 +81,23 @@ export default function PackagesPage() {
                 <Icon name="router" size={14} />
                 Bandwidth rule template stored
               </div>
+              <Button
+                variant="secondary"
+                className="mt-3"
+                onClick={() => {
+                  setEditingId(p.id);
+                  setForm({ name: p.name, speedMbps: p.speedMbps, dataCapGb: p.dataCapGb, priceCents: p.priceCents });
+                  setOpen(true);
+                }}
+              >
+                Edit package
+              </Button>
             </Card>
           ))}
         </div>
       )}
 
-      <Sheet open={open} onClose={() => setOpen(false)} title="New Package">
+      <Sheet open={open} onClose={() => { setOpen(false); setEditingId(null); }} title={editingId ? "Edit Package" : "New Package"}>
         <div className="space-y-4">
           <Field label="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Home Pro" />
           <Field
@@ -105,7 +119,7 @@ export default function PackagesPage() {
             onChange={(e) => setForm({ ...form, priceCents: Number(e.target.value) })}
           />
           <Button fullWidth onClick={createPackage} disabled={busy || !form.name}>
-            Create Package
+            {editingId ? "Save Package" : "Create Package"}
           </Button>
         </div>
       </Sheet>

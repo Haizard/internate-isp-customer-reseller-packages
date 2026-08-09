@@ -87,7 +87,7 @@ export class CustomersController {
   async redeemVoucher(req: Request, res: Response, next: NextFunction) {
     try {
       const input = redeemVoucherSchema.parse(req.body);
-      const voucher = await service.redeemVoucher(req.customerId!, input);
+      const voucher = await service.redeemVoucher(req.customerId!, input, req.auth!.id);
       res.json({ data: voucher });
     } catch (err) {
       next(err);

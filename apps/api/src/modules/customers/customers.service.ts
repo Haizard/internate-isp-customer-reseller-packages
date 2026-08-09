@@ -1,3 +1,4 @@
+import bcrypt from "bcryptjs";
 import { prisma } from "../../prisma/client";
 import { AppError } from "../../middleware/errorHandler";
 import type {
@@ -15,45 +16,67 @@ export class CustomersService {
     });
     if (!router) throw new AppError(400, "Router not found in your scope");
 
-    const customer = await prisma.customer.create({
-      data: {
-        name: input.name,
-        phone: input.phone,
-        wifiSsid: input.wifiSsid ?? `${input.name.replace(/\s+/g, "")}_WiFi`,
-        wifiPassword: input.wifiPassword ?? "changeme123",
-        routerId: input.routerId,
-        organizationId,
-        createdByUserId: actorUserId,
-        updatedByUserId: actorUserId,
-      },
-    });
+    const email = input.email ?? `${input.phone.replace(/\D/g, "")}@customer.netmaster.local`;
+    const password = input.password ?? "changeme123";
+    const passwordHash = await bcrypt.hash(password, 10);
+    const result = await prisma.$transaction(async (tx) => {
+      const existingUser = await tx.user.findUnique({ where: { email } });
+      if (existingUser) throw new AppError(409, "Customer email already exists");
 
-    if (input.packageId) {
-      const pkg = await prisma.package.findFirst({
-        where: { id: input.packageId, organizationId: { in: [organizationId, ...(await this.parentOrgIds(organizationId))] } },
+      const customer = await tx.customer.create({
+        data: {
+          name: input.name,
+          phone: input.phone,
+          wifiSsid: input.wifiSsid ?? `${input.name.replace(/\s+/g, "")}_WiFi`,
+          wifiPassword: input.wifiPassword ?? "changeme123",
+          routerId: input.routerId,
+          organizationId,
+          createdByUserId: actorUserId,
+          updatedByUserId: actorUserId,
+        },
       });
-      if (pkg) {
-        await prisma.subscription.create({
-          data: {
-            customerId: customer.id,
-            packageId: pkg.id,
-            createdByUserId: actorUserId,
-            updatedByUserId: actorUserId,
-          },
-        });
-      }
-    }
 
-    await prisma.auditLog.create({
-      data: {
-        actorUserId,
-        action: "CREATE",
-        entityType: "Customer",
-        entityId: customer.id,
-        afterJson: { name: customer.name, phone: customer.phone },
-      },
+      await tx.user.create({
+        data: {
+          name: input.name,
+          email,
+          passwordHash,
+          role: "CUSTOMER",
+          organizationId,
+          customerId: customer.id,
+          createdByUserId: actorUserId,
+          updatedByUserId: actorUserId,
+        },
+      });
+
+      if (input.packageId) {
+        const pkg = await tx.package.findFirst({
+          where: { id: input.packageId, organizationId: { in: [organizationId, ...(await this.parentOrgIds(organizationId))] } },
+        });
+        if (pkg) {
+          await tx.subscription.create({
+            data: {
+              customerId: customer.id,
+              packageId: pkg.id,
+              createdByUserId: actorUserId,
+              updatedByUserId: actorUserId,
+            },
+          });
+        }
+      }
+
+      await tx.auditLog.create({
+        data: {
+          actorUserId,
+          action: "CREATE",
+          entityType: "Customer",
+          entityId: customer.id,
+          afterJson: { name: customer.name, phone: customer.phone, email },
+        },
+      });
+      return customer;
     });
-    return customer;
+    return { customer: result, credentials: { email, password } };
   }
 
   async list(orgIds: string[]) {
@@ -154,27 +177,46 @@ export class CustomersService {
     return records;
   }
 
-  async redeemVoucher(customerId: string, input: RedeemVoucherInput) {
-    const voucher = await prisma.voucher.findUnique({ where: { code: input.code.trim() } });
+  async redeemVoucher(customerId: string, input: RedeemVoucherInput, actorUserId = "system") {
+    const customer = await prisma.customer.findUnique({
+      where: { id: customerId },
+      include: { subscription: true },
+    });
+    if (!customer) throw new AppError(404, "Customer not found");
+    const voucher = await prisma.voucher.findFirst({
+      where: { code: input.code.trim(), organizationId: customer.organizationId },
+    });
     if (!voucher) throw new AppError(404, "Voucher not found");
     if (voucher.status === "USED") throw new AppError(409, "Voucher already used");
     if (voucher.status === "EXPIRED" || (voucher.expiresAt && voucher.expiresAt < new Date())) {
       throw new AppError(409, "Voucher has expired");
     }
-    const updated = await prisma.voucher.update({
-      where: { id: voucher.id },
-      data: { status: "USED", usedByCustomerId: customerId },
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.voucher.update({
+        where: { id: voucher.id, status: "UNUSED" },
+        data: { status: "USED", usedByCustomerId: customerId },
+      });
+      if (customer.subscription && voucher.durationHours) {
+        const base = customer.subscription.renewsAt && customer.subscription.renewsAt > new Date()
+          ? customer.subscription.renewsAt
+          : new Date();
+        const renewsAt = new Date(base.getTime() + voucher.durationHours * 60 * 60 * 1000);
+        await tx.subscription.update({
+          where: { customerId },
+          data: { renewsAt, updatedByUserId: actorUserId },
+        });
+      }
+      await tx.auditLog.create({
+        data: {
+          actorUserId,
+          action: "REDEEM",
+          entityType: "Voucher",
+          entityId: voucher.id,
+          afterJson: { code: voucher.code, customerId, durationHours: voucher.durationHours, dataGb: voucher.dataGb },
+        },
+      });
+      return updated;
     });
-    await prisma.auditLog.create({
-      data: {
-        actorUserId: null,
-        action: "REDEEM",
-        entityType: "Voucher",
-        entityId: voucher.id,
-        afterJson: { code: voucher.code },
-      },
-    });
-    return updated;
   }
 
   async createRequest(customerId: string, input: CreateRequestInput, actorUserId: string | null = null) {

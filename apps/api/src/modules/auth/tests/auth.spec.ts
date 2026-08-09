@@ -5,7 +5,7 @@ vi.mock("../../../prisma/client", () => ({
   prisma: {
     user: { findUnique: vi.fn(), create: vi.fn() },
     customer: { findFirst: vi.fn() },
-    organization: { findFirst: vi.fn(), create: vi.fn() },
+    organization: { findFirst: vi.fn(), findUnique: vi.fn(), create: vi.fn() },
   },
 }));
 
@@ -34,6 +34,7 @@ describe("AuthService.login", () => {
       organizationId: "o-1",
       customerId: null,
     } as never);
+    vi.mocked(prisma.organization.findUnique).mockResolvedValue({ status: "ACTIVE" } as never);
     await expect(service.login({ email: "a@b.com", password: "wrong" })).rejects.toBeInstanceOf(AppError);
   });
 
@@ -47,6 +48,7 @@ describe("AuthService.login", () => {
       organizationId: "o-1",
       customerId: null,
     } as never);
+    vi.mocked(prisma.organization.findUnique).mockResolvedValue({ status: "ACTIVE" } as never);
 
     const result = await service.login({ email: "admin@x.com", password: "password123" });
 

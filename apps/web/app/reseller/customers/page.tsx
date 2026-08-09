@@ -37,7 +37,9 @@ export default function CustomersPage() {
   const routers = useApi<Router[]>("/routers");
   const packages = useApi<Pkg[]>("/packages");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", phone: "", routerId: "", packageId: "" });
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState({ name: "", phone: "", email: "", password: "", routerId: "", packageId: "", status: "ACTIVE" });
+  const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
   if (loading || routers.loading || packages.loading) return <LoadingState />;
@@ -47,14 +49,22 @@ export default function CustomersPage() {
   async function createCustomer() {
     setBusy(true);
     try {
-      await api.post("/customers", {
+      const payload = {
         name: form.name,
         phone: form.phone,
+        ...(form.email ? { email: form.email } : {}),
+        ...(form.password ? { password: form.password } : {}),
         routerId: form.routerId,
         ...(form.packageId ? { packageId: form.packageId } : {}),
-      });
+      };
+      if (editingId) await api.patch(`/customers/${editingId}`, { name: form.name, phone: form.phone, routerId: form.routerId, status: form.status });
+      else {
+        const result = await api.post<{ credentials?: { email: string; password: string } }>("/customers", payload);
+        setCredentials(result.credentials ?? null);
+      }
       setOpen(false);
-      setForm({ name: "", phone: "", routerId: "", packageId: "" });
+      setEditingId(null);
+      setForm({ name: "", phone: "", email: "", password: "", routerId: "", packageId: "", status: "ACTIVE" });
       reload();
     } finally {
       setBusy(false);
@@ -88,17 +98,44 @@ export default function CustomersPage() {
                     <Icon name="users" size={20} />
                   </div>
                 }
-                trailing={<StatusBadge status={c.status} />}
+                trailing={
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={c.status} />
+                    <Button variant="ghost" size="md" onClick={() => {
+                      setEditingId(c.id);
+                      setForm({ name: c.name, phone: c.phone, email: "", password: "", routerId: "", packageId: "", status: c.status });
+                      setOpen(true);
+                    }}>Edit</Button>
+                  </div>
+                }
               />
             </div>
           ))}
         </Card>
       )}
 
-      <Sheet open={open} onClose={() => setOpen(false)} title="New Customer">
+      {credentials && (
+        <Card className="mt-4 p-4 border border-accent-green/30">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-body font-semibold">Customer login created</p>
+              <p className="text-footnote text-text-secondary mt-1">Share these temporary credentials with the customer.</p>
+              <p className="text-footnote mt-3">Email: <span className="font-semibold">{credentials.email}</span></p>
+              <p className="text-footnote">Password: <span className="font-semibold">{credentials.password}</span></p>
+            </div>
+            <Button variant="secondary" onClick={() => setCredentials(null)}>Dismiss</Button>
+          </div>
+        </Card>
+      )}
+
+      <Sheet open={open} onClose={() => { setOpen(false); setEditingId(null); }} title={editingId ? "Edit Customer" : "New Customer"}>
         <div className="space-y-4">
           <Field label="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="John Mushi" />
           <Field label="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="255712000000" />
+          {!editingId && <>
+            <Field label="Customer email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="customer@example.com" />
+            <Field label="Temporary password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="At least 6 characters" />
+          </>}
           <div>
             <label className="block text-footnote font-medium text-text-secondary mb-1.5">Router</label>
             <select
@@ -129,8 +166,14 @@ export default function CustomersPage() {
               ))}
             </select>
           </div>
+          {editingId && <div>
+            <label className="block text-footnote font-medium text-text-secondary mb-1.5">Status</label>
+            <select className="w-full h-[44px] px-4 rounded-md bg-white/60 border border-white/60 text-body outline-none" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+              <option value="ACTIVE">Active</option><option value="SUSPENDED">Suspended</option><option value="PENDING">Pending</option>
+            </select>
+          </div>}
           <Button fullWidth onClick={createCustomer} disabled={busy || !form.name || !form.phone || !form.routerId}>
-            Create Customer
+            {editingId ? "Save Customer" : "Create Customer"}
           </Button>
         </div>
       </Sheet>

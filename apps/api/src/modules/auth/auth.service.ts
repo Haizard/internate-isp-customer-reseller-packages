@@ -52,6 +52,8 @@ export class AuthService {
   async login(input: LoginInput) {
     const user = await prisma.user.findUnique({ where: { email: input.email } });
     if (!user) throw new AppError(401, "Invalid email or password");
+    const organization = await prisma.organization.findUnique({ where: { id: user.organizationId }, select: { status: true } });
+    if (organization && organization.status !== "ACTIVE") throw new AppError(403, "Account organization is not active");
     const valid = await bcrypt.compare(input.password, user.passwordHash);
     if (!valid) throw new AppError(401, "Invalid email or password");
 

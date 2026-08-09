@@ -7,22 +7,41 @@ import { prisma } from "../prisma/client";
  * Resellers access only their own org.
  */
 export async function resolveOrgScope(organizationId: string): Promise<string[]> {
-  const org = await prisma.organization.findUnique({ where: { id: organizationId } });
-  if (!org) return [];
-
-  if (org.type === "ISP") {
+  const scope = new Set<string>();
+  const pending = [organizationId];
+  while (pending.length > 0) {
+    const currentId = pending.pop()!;
+    if (scope.has(currentId)) continue;
+    const org = await prisma.organization.findUnique({ where: { id: currentId }, select: { id: true } });
+    if (!org) continue;
+    scope.add(org.id);
     const children = await prisma.organization.findMany({
-      where: { parentOrgId: organizationId },
+      where: { parentOrgId: currentId },
       select: { id: true },
     });
-    return [org.id, ...children.map((child: { id: string }) => child.id)];
+    pending.push(...children.map((child: { id: string }) => child.id));
   }
-  return [org.id];
+  return [...scope];
 }
 
 export function tenantGuard(req: Request, res: Response, next: NextFunction): void {
   if (!req.auth) {
     res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  if (req.auth.organizationId && req.auth.role !== "PLATFORM_OWNER") {
+    prisma.organization.findUnique({ where: { id: req.auth.organizationId }, select: { status: true } })
+      .then((org) => {
+        if (!org || org.status !== "ACTIVE") {
+          res.status(403).json({ error: "Organization is not active" });
+          return;
+        }
+        return resolveOrgScope(req.auth!.organizationId).then((orgIds) => {
+          req.orgIds = orgIds;
+          next();
+        });
+      })
+      .catch(() => res.status(500).json({ error: "Failed to resolve tenant scope" }));
     return;
   }
   resolveOrgScope(req.auth.organizationId)

@@ -37,7 +37,7 @@ export class OrganizationsController {
   async updateStatus(req: Request, res: Response, next: NextFunction) {
     try {
       const input = updateOrgStatusSchema.parse(req.body);
-      const org = await service.updateStatus(req.params.id, input, req.auth!.id);
+      const org = await service.updateStatus(req.params.id, input, req.auth!.id, req.orgIds ?? []);
       res.json({ data: org });
     } catch (err) {
       next(err);

@@ -17,6 +17,10 @@ export class UsersController {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const input = createUserSchema.parse(req.body);
+      if (req.auth!.role !== "PLATFORM_OWNER" && input.role === "PLATFORM_OWNER") {
+        res.status(403).json({ error: "Only platform owners can create platform owners" });
+        return;
+      }
       const user = await service.createForOrg(input, req.auth!.organizationId, req.auth!.id);
       res.status(201).json({ data: user });
     } catch (err) {
