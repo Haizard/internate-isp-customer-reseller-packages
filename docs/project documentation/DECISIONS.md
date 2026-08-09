@@ -41,3 +41,12 @@ This file records significant architectural decisions, their context, rationale,
 - **Context**: Real router firmware flashing, Rust edge agents, RADIUS, and Linux kernel traffic shaping add hardware dependencies and deployment complexity.
 - **Decision**: Defer all physical network execution to Phase 2. For the MVP, routers, bandwidth policies, and vouchers are modeled as DB entities and simulated in software.
 - **Rationale**: Allows delivering a complete, interactive, end-to-end working software product in weeks to demonstrate business value to ISPs.
+
+---
+
+## ADR-006: MikroTik First, OpenWrt Second, Rust at the Edge
+- **Status**: Accepted
+- **Context**: MVP 2 needs a realistic path from the simulated router model to affordable reseller hardware. Mikhmon provides a useful reference for MikroTik RouterOS hotspot, voucher, profile, session, and queue operations. OpenWrt supports lower-cost hardware but requires a different control mechanism.
+- **Decision**: Build a shared router capability contract and simulator first. Implement the first real adapter for MikroTik RouterOS through its API. Implement OpenWrt as the second adapter, with a Rust Gateway Agent running on OpenWrt or another supported Linux gateway.
+- **Rationale**: MikroTik gives the fastest path to a proven hardware integration. OpenWrt provides a broader low-cost hardware path. Rust is best isolated to the long-running edge agent where low memory use, reliable operation, retries, and local networking control matter. It should not replace the Next.js/Node.js cloud platform and cannot generally run directly on RouterOS.
+- **Consequences**: The cloud API must remain hardware-neutral. Each adapter must support the same operations for profiles, users/vouchers, limits, sessions, usage, health, suspension, and reconciliation. Hardware-specific behavior belongs behind the adapter boundary. See `05-MVP2_ROADMAP.md` for delivery stages and readiness gates.
