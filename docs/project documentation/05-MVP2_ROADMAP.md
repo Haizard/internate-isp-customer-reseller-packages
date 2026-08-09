@@ -33,6 +33,35 @@ NetMaster Cloud
 
 NetMaster does not carry customer internet traffic. It stores the desired business and network state, sends commands, receives status and usage, and displays the results. The local gateway enforces authentication, speed, quota, expiration, and disconnection.
 
+## 2.1 Operating Model
+
+NetMaster is a cloud connector, not a hardware operator. The reseller purchases and operates the supported gateway and any access points. NetMaster operates the cloud software, adapter, enrollment, configuration, and monitoring services.
+
+The initial supported reseller gateway options are:
+
+- MikroTik hEX lite
+- MikroTik hEX refresh
+- A specifically tested MikroTik model and hardware revision
+- A specifically tested OpenWrt-supported router in the later OpenWrt stage
+
+Approved access points are downstream WiFi devices. They extend coverage but do not replace the gateway. The gateway remains responsible for authentication, vouchers, packages, bandwidth policy, and customer sessions.
+
+For the first MikroTik path, the required integration is:
+
+```text
+NetMaster Cloud <-> MikroTik RouterOS API <-> reseller-owned MikroTik gateway
+```
+
+The following integrations are optional later paths and are not required to start MVP 2A or MVP 2B:
+
+- ISP API
+- RADIUS integration
+- OpenWrt Gateway Agent
+- Captive portal integration
+- ISP webhook or provisioning interface
+
+The ISP must still authorize the reseller's service commercially. NetMaster cannot make an ordinary consumer subscription resellable by software alone.
+
 ## 3. Technology Responsibilities
 
 ### Cloud platform: Next.js and Node.js
