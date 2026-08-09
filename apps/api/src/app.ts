@@ -9,6 +9,7 @@ import customerRoutes from "./modules/customers/customers.routes";
 import packageRoutes from "./modules/packages/packages.routes";
 import voucherRoutes from "./modules/vouchers/vouchers.routes";
 import reportRoutes from "./modules/reports/reports.routes";
+import routerAdapterRoutes from "./modules/routerAdapters/routerAdapters.routes";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
 import { config } from "./config";
 
@@ -30,6 +31,7 @@ app.use("/api/v1/customers", customerRoutes);
 app.use("/api/v1/packages", packageRoutes);
 app.use("/api/v1/vouchers", voucherRoutes);
 app.use("/api/v1/reports", reportRoutes);
+app.use("/api/v1/router-adapters", routerAdapterRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
