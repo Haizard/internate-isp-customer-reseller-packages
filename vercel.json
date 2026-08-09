@@ -4,14 +4,11 @@
   "framework": null,
   "installCommand": "npm install",
   "buildCommand": "npm run vercel-build",
-  "builds": [
+  "outputDirectory": "public",
+  "rewrites": [
     {
-      "src": "api/index.ts",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "apps/web/out/**",
-      "use": "@vercel/static"
+      "source": "/api/:path*",
+      "destination": "/api"
     }
   ],
   "cleanUrls": true
