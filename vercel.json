@@ -10,17 +10,8 @@
       "use": "@vercel/node"
     },
     {
-      "src": "public/**",
+      "src": "apps/web/out/**",
       "use": "@vercel/static"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/index.ts"
-    },
-    {
-      "handle": "filesystem"
     }
   ],
   "cleanUrls": true
