@@ -44,6 +44,36 @@ describe("RouterAdaptersService.applyProfile", () => {
   });
 });
 
+describe("RouterAdaptersService.enrollRouter", () => {
+  it("routes enrollment through the shared adapter execution path", async () => {
+    vi.mocked(prisma.router.findFirst).mockResolvedValue({ id: "router-1", name: "Gateway A" } as never);
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as never);
+
+    const executeSpy = vi.spyOn(service as any, "executeAdapterCommand");
+    executeSpy.mockResolvedValue({
+      command: {
+        id: "router-1-heartbeat-1",
+        routerId: "router-1",
+        kind: "heartbeat",
+        payload: {},
+        status: "PENDING",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      executionResult: { status: "PENDING", message: "Queued for execution" },
+    });
+
+    await service.enrollRouter(
+      "router-1",
+      { adapterType: "mikrotik", pairingCode: "pair-123" },
+      "org-1",
+      "user-1",
+    );
+
+    expect(executeSpy).toHaveBeenCalled();
+  });
+});
+
 describe("RouterAdaptersService.getStatus", () => {
   it("returns a simulator heartbeat snapshot", async () => {
     vi.mocked(prisma.router.findFirst).mockResolvedValue({ id: "router-1", name: "Gateway A" } as never);

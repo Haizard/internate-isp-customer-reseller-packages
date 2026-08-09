@@ -2,9 +2,10 @@ import { prisma } from "../../prisma/client";
 import { AppError } from "../../middleware/errorHandler";
 import type { ApplyProfileInput, CreateRouterUserInput, CreateVoucherInput, EnrollRouterInput } from "./routerAdapters.dto";
 import type { RouterAdapterCommandResult, RouterAdapterStatus } from "./routerAdapters.types";
-import type { AdapterCommandEnvelope, AdapterConfig } from "./routerAdapters.contract";
+import type { AdapterCommandEnvelope, AdapterConfig, RouterAdapter } from "./routerAdapters.contract";
 import type { RouterAdapterLifecycleState } from "./routerAdapters.lifecycle";
 import { MikroTikAdapter } from "./mikrotikAdapter";
+import { SimulatorAdapter } from "./simulatorAdapter";
 
 export class RouterAdaptersService {
   private buildAdapterConfig(input: EnrollRouterInput): AdapterConfig {
@@ -67,6 +68,23 @@ export class RouterAdaptersService {
     }
   }
 
+  private async executeAdapterCommand(command: AdapterCommandEnvelope, adapterKind: "simulator" | "mikrotik", config?: AdapterConfig) {
+    const adapterConfig = config ?? {
+      adapterKind,
+      connectionMode: adapterKind === "mikrotik" ? "api" : "simulator",
+      pairingCode: command.routerId,
+    };
+
+    const adapter: RouterAdapter = adapterKind === "mikrotik"
+      ? new MikroTikAdapter(adapterConfig)
+      : new SimulatorAdapter(adapterConfig);
+
+    await adapter.connect();
+    const executionResult = await adapter.execute(command);
+
+    return { command, executionResult };
+  }
+
   private async persistReconciliation(routerId: string, desiredState: Record<string, unknown>, adapterKind: "simulator" | "mikrotik") {
     const reconciliationClient = (prisma as any).routerAdapterReconciliation;
     if (!reconciliationClient?.upsert) {
@@ -122,10 +140,7 @@ export class RouterAdaptersService {
       },
     });
 
-    if (input.adapterType === "mikrotik") {
-      const adapter = new MikroTikAdapter(adapterConfig);
-      await adapter.connect();
-    }
+    await this.executeAdapterCommand(command, input.adapterType === "mikrotik" ? "mikrotik" : "simulator", this.buildAdapterConfig(input));
 
     return {
       routerId,
@@ -169,7 +184,8 @@ export class RouterAdaptersService {
       },
     });
 
-    await this.persistCommand(command);
+    const { command: executedCommand } = await this.executeAdapterCommand(command, "simulator", this.buildAdapterConfig({ adapterType: "simulator", pairingCode: routerId } as EnrollRouterInput));
+    await this.persistCommand(executedCommand);
     await this.persistReconciliation(routerId, appliedProfile, "simulator");
 
     return {
@@ -209,7 +225,12 @@ export class RouterAdaptersService {
       },
     });
 
-    await this.persistCommand(command);
+    const { command: executedCommand } = await this.executeAdapterCommand(
+      command,
+      "simulator",
+      this.buildAdapterConfig({ adapterType: "simulator", pairingCode: routerId } as EnrollRouterInput),
+    );
+    await this.persistCommand(executedCommand);
 
     return {
       routerId,
@@ -246,7 +267,12 @@ export class RouterAdaptersService {
       },
     });
 
-    await this.persistCommand(command);
+    const { command: executedCommand } = await this.executeAdapterCommand(
+      command,
+      "simulator",
+      this.buildAdapterConfig({ adapterType: "simulator", pairingCode: routerId } as EnrollRouterInput),
+    );
+    await this.persistCommand(executedCommand);
 
     return {
       routerId,

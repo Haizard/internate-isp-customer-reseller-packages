@@ -1,9 +1,20 @@
 export type AdapterKind = "simulator" | "mikrotik";
 
+export type RouterAdapterCommandKind =
+  | "apply_profile"
+  | "create_user"
+  | "create_voucher"
+  | "disconnect_user"
+  | "heartbeat"
+  | "create_queue"
+  | "create_pool"
+  | "create_pppoe_profile"
+  | "create_hotspot_profile";
+
 export interface AdapterCommandEnvelope {
   id: string;
   routerId: string;
-  kind: "apply_profile" | "create_user" | "create_voucher" | "disconnect_user" | "heartbeat";
+  kind: RouterAdapterCommandKind;
   payload: Record<string, unknown>;
   status: "PENDING" | "APPLIED" | "FAILED";
   createdAt: string;
@@ -26,4 +37,10 @@ export interface AdapterCommandResult {
   status: "APPLIED" | "PENDING" | "FAILED";
   configurationVersion: number;
   message?: string;
+}
+
+export interface RouterAdapter {
+  readonly kind: AdapterKind;
+  connect(): Promise<unknown>;
+  execute(command: AdapterCommandEnvelope): Promise<AdapterCommandResult>;
 }

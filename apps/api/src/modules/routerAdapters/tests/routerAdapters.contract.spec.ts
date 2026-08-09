@@ -16,4 +16,18 @@ describe("router adapter contract", () => {
     expect(command.kind).toBe("apply_profile");
     expect(command.status).toBe("PENDING");
   });
+
+  it("supports additional RouterOS command types", () => {
+    const queueCommand: AdapterCommandEnvelope = {
+      id: "cmd-2",
+      routerId: "router-1",
+      kind: "create_queue",
+      payload: { name: "queue-1", maxLimit: "10M/10M" },
+      status: "PENDING",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    };
+
+    expect(queueCommand.kind).toBe("create_queue");
+  });
 });
