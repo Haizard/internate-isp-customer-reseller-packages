@@ -39,3 +39,6 @@ next-env.d.ts
 # vercel
 .vercel
 apps/api/dist/
+
+# local reference project; never commit or push
+/mikhmonv3-master/
