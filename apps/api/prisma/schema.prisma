@@ -39,6 +39,18 @@ enum VoucherStatus {
   EXPIRED
 }
 
+enum RouterAdapterCommandStatus {
+  PENDING
+  APPLIED
+  FAILED
+}
+
+enum RouterAdapterReconciliationStatus {
+  PENDING
+  APPLIED
+  FAILED
+}
+
 model Organization {
   id          String           @id @default(uuid()) @map("id")
   name        String
@@ -256,6 +268,33 @@ model AuditLog {
   @@index([entityType, entityId])
   @@index([actorUserId])
   @@map("audit_logs")
+}
+
+model RouterAdapterCommand {
+  id        String                      @id @default(uuid()) @map("id")
+  routerId  String                      @map("router_id")
+  kind      String
+  payload   Json
+  status    RouterAdapterCommandStatus  @default(PENDING)
+  createdAt DateTime                    @default(now()) @map("created_at")
+  updatedAt DateTime                    @updatedAt @map("updated_at")
+
+  @@index([routerId, status])
+  @@map("router_adapter_commands")
+}
+
+model RouterAdapterReconciliation {
+  id          String                            @id @default(uuid()) @map("id")
+  routerId    String                            @unique @map("router_id")
+  adapterKind String                            @map("adapter_kind")
+  status      RouterAdapterReconciliationStatus @default(PENDING)
+  desiredJson Json                              @map("desired_json")
+  appliedJson Json                              @map("applied_json")
+  createdAt   DateTime                          @default(now()) @map("created_at")
+  updatedAt   DateTime                          @updatedAt @map("updated_at")
+
+  @@index([status])
+  @@map("router_adapter_reconciliations")
 }
 
 model UsageRecord {

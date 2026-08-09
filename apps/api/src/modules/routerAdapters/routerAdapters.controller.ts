@@ -42,4 +42,13 @@ export class RouterAdaptersController {
       next(err);
     }
   }
+
+  async getLifecycleState(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await service.getLifecycleState(req.params.routerId, req.auth!.organizationId);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
