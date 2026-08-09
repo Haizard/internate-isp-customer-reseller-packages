@@ -28,16 +28,17 @@ export default function ResellerDashboard() {
   const locations = useApi<unknown[]>("/locations");
   const routers = useApi<unknown[]>("/routers");
   const customers = useApi<Customer[]>("/customers");
+  const earningsReport = useApi<{ id: string; monthlyRevenueCents: number }[]>("/reports/earnings");
 
-  if (locations.loading || routers.loading || customers.loading) return <LoadingState />;
-  if (locations.error || routers.error || customers.error)
-    return <ErrorState message={locations.error ?? routers.error ?? customers.error ?? "Error"} />;
+  if (locations.loading || routers.loading || customers.loading || earningsReport.loading) return <LoadingState />;
+  if (locations.error || routers.error || customers.error || earningsReport.error)
+    return <ErrorState message={locations.error ?? routers.error ?? customers.error ?? earningsReport.error ?? "Error"} />;
 
   const customerList = customers.data ?? [];
   const activeCustomers = customerList.filter((c) => c.status === "ACTIVE");
-  const earnings = activeCustomers.reduce(
+  const earnings = earningsReport.data?.find((report) => report.monthlyRevenueCents >= 0)?.monthlyRevenueCents ?? activeCustomers.reduce(
     (sum, c) => sum + (c.subscription?.package?.priceCents ?? 0),
-    0
+    0,
   );
 
   return (
@@ -48,7 +49,7 @@ export default function ResellerDashboard() {
         <StatCard label="Locations" value={locations.data?.length ?? 0} icon={<Icon name="location" />} accent="purple" />
         <StatCard label="Routers" value={routers.data?.length ?? 0} icon={<Icon name="router" />} accent="teal" />
         <StatCard label="Customers" value={customerList.length} icon={<Icon name="users" />} accent="blue" />
-        <StatCard label="Est. Monthly" value={formatCents(earnings)} icon={<Icon name="dollar" />} accent="green" />
+        <StatCard label="Monthly Earnings" value={formatCents(earnings)} icon={<Icon name="dollar" />} accent="green" />
       </div>
 
       <Card className="p-1">

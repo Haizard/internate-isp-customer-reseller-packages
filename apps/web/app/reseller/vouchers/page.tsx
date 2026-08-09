@@ -59,6 +59,11 @@ export default function VouchersPage() {
     }
   }
 
+  async function updateStatus(id: string, status: string) {
+    await api.patch(`/vouchers/${id}/status`, { status });
+    reload();
+  }
+
   return (
     <div>
       <PageHeader
@@ -95,6 +100,9 @@ export default function VouchersPage() {
               {copied === v.code && (
                 <p className="mt-2 text-caption text-accent-green font-semibold">Copied!</p>
               )}
+              <Button variant="ghost" className="mt-2" onClick={() => updateStatus(v.id, v.status === "UNUSED" ? "USED" : "UNUSED")}>
+                Mark {v.status === "UNUSED" ? "used" : "unused"}
+              </Button>
             </Card>
           ))}
         </div>

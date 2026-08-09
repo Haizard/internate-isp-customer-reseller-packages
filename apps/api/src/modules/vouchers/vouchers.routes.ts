@@ -11,5 +11,6 @@ router.use(authGuard, tenantGuard);
 
 router.get("/", controller.list);
 router.post("/batch", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.createBatch);
+router.patch("/:id/status", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.updateStatus);
 
 export default router;

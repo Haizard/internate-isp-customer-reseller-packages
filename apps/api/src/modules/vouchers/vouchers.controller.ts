@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { VouchersService } from "./vouchers.service";
-import { createVoucherBatchSchema } from "./vouchers.dto";
+import { createVoucherBatchSchema, updateVoucherStatusSchema } from "./vouchers.dto";
 
 const service = new VouchersService();
 
@@ -22,5 +22,13 @@ export class VouchersController {
     } catch (err) {
       next(err);
     }
+  }
+
+  async updateStatus(req: Request, res: Response, next: NextFunction) {
+    try {
+      const input = updateVoucherStatusSchema.parse(req.body);
+      const voucher = await service.updateStatus(req.params.id, input, req.orgIds ?? [], req.auth!.id);
+      res.json({ data: voucher });
+    } catch (err) { next(err); }
   }
 }

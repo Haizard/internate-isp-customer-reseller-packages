@@ -12,5 +12,6 @@ router.use(authGuard, tenantGuard);
 router.get("/resellers", roleGuard("PLATFORM_OWNER", "ISP_ADMIN"), controller.resellerSummary);
 router.get("/packages", roleGuard("PLATFORM_OWNER", "ISP_ADMIN"), controller.packagePopularity);
 router.get("/earnings", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.earningsByReseller);
+router.get("/audit-logs", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.auditLogs);
 
 export default router;

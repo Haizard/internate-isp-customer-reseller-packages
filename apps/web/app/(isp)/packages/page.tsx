@@ -22,6 +22,14 @@ interface Pkg {
   currency: string;
 }
 
+interface Rule {
+  id: string;
+  name: string;
+  downloadMbps: number;
+  uploadMbps: number;
+  priority: number;
+}
+
 const emptyForm = { name: "", speedMbps: 10, dataCapGb: null as number | null, priceCents: 25000 };
 
 export default function PackagesPage() {
@@ -29,6 +37,9 @@ export default function PackagesPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
+  const [rules, setRules] = useState<Rule[]>([]);
+  const [ruleForm, setRuleForm] = useState({ name: "Default", downloadMbps: 10, uploadMbps: 5, priority: 0 });
   const [busy, setBusy] = useState(false);
 
   if (loading) return <LoadingState />;
@@ -47,6 +58,17 @@ export default function PackagesPage() {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function loadRules(packageId: string) {
+    setSelectedPackageId(packageId);
+    setRules(await api.get<Rule[]>(`/packages/${packageId}/rules`));
+  }
+
+  async function saveRule() {
+    if (!selectedPackageId) return;
+    await api.post(`/packages/${selectedPackageId}/rules`, ruleForm);
+    setRules(await api.get<Rule[]>(`/packages/${selectedPackageId}/rules`));
   }
 
   return (
@@ -79,7 +101,9 @@ export default function PackagesPage() {
               </div>
               <div className="mt-3 flex items-center gap-2 text-caption text-text-tertiary">
                 <Icon name="router" size={14} />
-                Bandwidth rule template stored
+                <button className="text-accent-blue font-semibold" onClick={() => loadRules(p.id)}>
+                  Manage bandwidth rules
+                </button>
               </div>
               <Button
                 variant="secondary"
@@ -95,6 +119,26 @@ export default function PackagesPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {selectedPackageId && (
+        <Card className="mt-4 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-title-3 font-semibold">Bandwidth rules</h2>
+            <Button variant="ghost" onClick={() => setSelectedPackageId(null)}>Close</Button>
+          </div>
+          <div className="space-y-2 mb-4">
+            {rules.length === 0 ? <p className="text-footnote text-text-tertiary">No rules yet.</p> : rules.map((rule) => (
+              <ListRow key={rule.id} title={rule.name} subtitle={`${rule.downloadMbps} Mbps down · ${rule.uploadMbps} Mbps up · priority ${rule.priority}`} />
+            ))}
+          </div>
+          <div className="grid gap-3 md:grid-cols-4">
+            <Field label="Name" value={ruleForm.name} onChange={(e) => setRuleForm({ ...ruleForm, name: e.target.value })} />
+            <Field label="Download Mbps" type="number" value={ruleForm.downloadMbps} onChange={(e) => setRuleForm({ ...ruleForm, downloadMbps: Number(e.target.value) })} />
+            <Field label="Upload Mbps" type="number" value={ruleForm.uploadMbps} onChange={(e) => setRuleForm({ ...ruleForm, uploadMbps: Number(e.target.value) })} />
+            <Button className="self-end" onClick={saveRule}>Add rule</Button>
+          </div>
+        </Card>
       )}
 
       <Sheet open={open} onClose={() => { setOpen(false); setEditingId(null); }} title={editingId ? "Edit Package" : "New Package"}>

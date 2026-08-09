@@ -32,8 +32,13 @@ export const createRequestSchema = z.object({
   message: z.string().optional(),
 });
 
+export const updateRequestSchema = z.object({
+  status: z.enum(["OPEN", "IN_PROGRESS", "CLOSED"]),
+});
+
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
 export type UpdateCustomerInput = z.infer<typeof updateCustomerSchema>;
 export type UpdateWifiInput = z.infer<typeof updateWifiSchema>;
 export type RedeemVoucherInput = z.infer<typeof redeemVoucherSchema>;
 export type CreateRequestInput = z.infer<typeof createRequestSchema>;
+export type UpdateRequestInput = z.infer<typeof updateRequestSchema>;

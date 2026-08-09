@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { LoadingState, ErrorState, EmptyState } from "@/components/ui/States";
 import { formatCents } from "@/lib/format";
 import { BarChart } from "@/components/charts/BarChart";
+import { Button } from "@/components/ui/Button";
 
 interface ResellerSummary {
   id: string;
@@ -23,13 +24,36 @@ interface PackagePopularity {
   count: number;
 }
 
+interface ServiceRequest {
+  id: string;
+  type: string;
+  status: string;
+  message: string | null;
+  customer: { name: string; phone: string };
+}
+
+interface AuditLog {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string;
+  createdAt: string;
+}
+
 export default function ReportsPage() {
   const resellers = useApi<ResellerSummary[]>("/reports/resellers");
   const popularity = useApi<PackagePopularity[]>("/reports/packages");
+  const requests = useApi<ServiceRequest[]>("/customers/requests");
+  const auditLogs = useApi<AuditLog[]>("/reports/audit-logs");
 
-  if (resellers.loading || popularity.loading) return <LoadingState />;
-  if (resellers.error || popularity.error)
-    return <ErrorState message={resellers.error ?? popularity.error ?? "Error"} />;
+  if (resellers.loading || popularity.loading || requests.loading || auditLogs.loading) return <LoadingState />;
+  if (resellers.error || popularity.error || requests.error || auditLogs.error)
+    return <ErrorState message={resellers.error ?? popularity.error ?? requests.error ?? auditLogs.error ?? "Error"} />;
+
+  async function updateRequest(id: string, status: string) {
+    await fetch(`/api/v1/customers/requests/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${localStorage.getItem("netmaster_token") ?? ""}` }, body: JSON.stringify({ status }) });
+    requests.reload();
+  }
 
   const totalCustomers = (resellers.data ?? []).reduce((sum, r) => sum + r.customers, 0);
 
@@ -76,6 +100,25 @@ export default function ReportsPage() {
       ) : (
         <EmptyState label="No reseller data yet" />
       )}
+
+      <Card className="p-1 mt-4">
+        <div className="px-4 pt-3 pb-1"><h2 className="text-title-3 font-semibold">Service requests</h2></div>
+        {(requests.data ?? []).map((request, i) => (
+          <div key={request.id} className={i > 0 ? "hairline" : ""}>
+            <div className="px-4 py-3 flex items-center gap-3">
+              <div className="flex-1"><p className="text-body font-medium">{request.type} · {request.customer.name}</p><p className="text-footnote text-text-secondary">{request.message ?? "No message"} · {request.customer.phone}</p></div>
+              <Button variant="secondary" onClick={() => updateRequest(request.id, request.status === "OPEN" ? "IN_PROGRESS" : "CLOSED")}>{request.status === "OPEN" ? "Start" : request.status === "IN_PROGRESS" ? "Close" : "Closed"}</Button>
+            </div>
+          </div>
+        ))}
+      </Card>
+
+      <Card className="p-1 mt-4">
+        <div className="px-4 pt-3 pb-1"><h2 className="text-title-3 font-semibold">Recent activity</h2></div>
+        {(auditLogs.data ?? []).slice(0, 10).map((log, i) => (
+          <div key={log.id} className={i > 0 ? "hairline" : ""}><div className="px-4 py-3"><p className="text-body font-medium">{log.action} {log.entityType}</p><p className="text-footnote text-text-secondary">{log.entityId} · {new Date(log.createdAt).toLocaleString()}</p></div></div>
+        ))}
+      </Card>
     </div>
   );
 }

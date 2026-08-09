@@ -1,6 +1,8 @@
 import crypto from "crypto";
 import { prisma } from "../../prisma/client";
+import { AppError } from "../../middleware/errorHandler";
 import type { CreateVoucherBatchInput } from "./vouchers.dto";
+import type { UpdateVoucherStatusInput } from "./vouchers.dto";
 
 function generateCode(): string {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -51,5 +53,13 @@ export class VouchersService {
       orderBy: { createdAt: "desc" },
       take: 200,
     });
+  }
+
+  async updateStatus(id: string, input: UpdateVoucherStatusInput, orgIds: string[], actorUserId: string) {
+    const voucher = await prisma.voucher.findFirst({ where: { id, organizationId: { in: orgIds } } });
+    if (!voucher) throw new AppError(404, "Voucher not found");
+    const updated = await prisma.voucher.update({ where: { id }, data: { status: input.status, updatedByUserId: actorUserId } });
+    await prisma.auditLog.create({ data: { actorUserId, action: "UPDATE", entityType: "Voucher", entityId: id, beforeJson: { status: voucher.status }, afterJson: { status: updated.status } } });
+    return updated;
   }
 }

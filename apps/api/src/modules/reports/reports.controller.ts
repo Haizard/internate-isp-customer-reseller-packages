@@ -4,6 +4,10 @@ import { ReportsService } from "./reports.service";
 const service = new ReportsService();
 
 export class ReportsController {
+  async auditLogs(req: Request, res: Response, next: NextFunction) {
+    try { res.json({ data: await service.auditLogs(req.orgIds ?? []) }); } catch (err) { next(err); }
+  }
+
   async resellerSummary(req: Request, res: Response, next: NextFunction) {
     try {
       const data = await service.resellerSummary(req.orgIds ?? []);

@@ -6,11 +6,23 @@ import {
   redeemVoucherSchema,
   updateCustomerSchema,
   updateWifiSchema,
+  updateRequestSchema,
 } from "./customers.dto";
 
 const service = new CustomersService();
 
 export class CustomersController {
+  async listAllRequests(req: Request, res: Response, next: NextFunction) {
+    try { res.json({ data: await service.listAllRequests(req.orgIds ?? []) }); } catch (err) { next(err); }
+  }
+
+  async updateRequest(req: Request, res: Response, next: NextFunction) {
+    try {
+      const input = updateRequestSchema.parse(req.body);
+      res.json({ data: await service.updateRequest(req.params.id, input.status, req.orgIds ?? [], req.auth!.id) });
+    } catch (err) { next(err); }
+  }
+
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const input = createCustomerSchema.parse(req.body);

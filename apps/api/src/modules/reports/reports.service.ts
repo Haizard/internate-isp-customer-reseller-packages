@@ -1,6 +1,15 @@
 import { prisma } from "../../prisma/client";
 
 export class ReportsService {
+  async auditLogs(orgIds: string[]) {
+    const users = await prisma.user.findMany({ where: { organizationId: { in: orgIds } }, select: { id: true } });
+    return prisma.auditLog.findMany({
+      where: { actorUserId: { in: users.map((user) => user.id) } },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    });
+  }
+
   async resellerSummary(orgIds: string[]) {
     const resellers = await prisma.organization.findMany({
       where: { id: { in: orgIds }, type: "RESELLER" },

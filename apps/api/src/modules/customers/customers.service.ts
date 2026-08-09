@@ -238,6 +238,22 @@ export class CustomersService {
     });
   }
 
+  async listAllRequests(orgIds: string[]) {
+    return prisma.serviceRequest.findMany({
+      where: { customer: { organizationId: { in: orgIds } } },
+      include: { customer: { select: { id: true, name: true, phone: true, organizationId: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  async updateRequest(id: string, status: "OPEN" | "IN_PROGRESS" | "CLOSED", orgIds: string[], actorUserId: string) {
+    const request = await prisma.serviceRequest.findFirst({ where: { id, customer: { organizationId: { in: orgIds } } } });
+    if (!request) throw new AppError(404, "Service request not found");
+    const updated = await prisma.serviceRequest.update({ where: { id }, data: { status, updatedByUserId: actorUserId } });
+    await prisma.auditLog.create({ data: { actorUserId, action: "UPDATE", entityType: "ServiceRequest", entityId: id, beforeJson: { status: request.status }, afterJson: { status } } });
+    return updated;
+  }
+
   private async parentOrgIds(organizationId: string): Promise<string[]> {
     const org = await prisma.organization.findUnique({ where: { id: organizationId } });
     if (org?.parentOrgId) return [org.parentOrgId];

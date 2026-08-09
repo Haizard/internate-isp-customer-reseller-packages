@@ -7,4 +7,9 @@ export const createVoucherBatchSchema = z.object({
   expiresInDays: z.number().int().positive().optional(),
 });
 
+export const updateVoucherStatusSchema = z.object({
+  status: z.enum(["UNUSED", "USED", "EXPIRED"]),
+});
+
 export type CreateVoucherBatchInput = z.infer<typeof createVoucherBatchSchema>;
+export type UpdateVoucherStatusInput = z.infer<typeof updateVoucherStatusSchema>;
