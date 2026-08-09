@@ -10,16 +10,16 @@ const controller = new CustomersController();
 
 router.use(authGuard, tenantGuard);
 
-// Customer self-service (must be registered before :id routes)
+// Customer self-service (mounted at /me, must be registered before :id routes)
 const self = Router();
 self.use(customerGuard);
-self.get("/me", controller.me);
-self.patch("/me/wifi", controller.updateWifi);
-self.get("/me/devices", controller.devices);
-self.get("/me/usage", controller.usage);
-self.post("/me/vouchers/redeem", controller.redeemVoucher);
-self.get("/me/requests", controller.listRequests);
-self.post("/me/requests", controller.createRequest);
+self.get("/", controller.me);
+self.patch("/wifi", controller.updateWifi);
+self.get("/devices", controller.devices);
+self.get("/usage", controller.usage);
+self.post("/vouchers/redeem", controller.redeemVoucher);
+self.get("/requests", controller.listRequests);
+self.post("/requests", controller.createRequest);
 
 router.use("/me", self);
 
