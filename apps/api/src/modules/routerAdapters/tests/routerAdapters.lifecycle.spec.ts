@@ -75,4 +75,24 @@ describe("RouterAdaptersService lifecycle", () => {
     expect(result.status).toBe("APPLIED");
     expect(result.appliedProfile.packageName).toBe("Fiber 50");
   });
+
+  it("creates a simulator-backed user command", async () => {
+    vi.mocked(prisma.router.findFirst).mockResolvedValue({ id: "router-1", name: "Gateway A" } as never);
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as never);
+
+    const result = await service.createRouterUser("router-1", { username: "cust01", password: "secret" }, "org-1", "user-1");
+
+    expect(result.status).toBe("APPLIED");
+    expect(result.command.kind).toBe("create_user");
+  });
+
+  it("creates a simulator-backed voucher command", async () => {
+    vi.mocked(prisma.router.findFirst).mockResolvedValue({ id: "router-1", name: "Gateway A" } as never);
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as never);
+
+    const result = await service.createVoucher("router-1", { code: "VOUCHER-1", dataGb: 50 }, "org-1", "user-1");
+
+    expect(result.status).toBe("APPLIED");
+    expect(result.command.kind).toBe("create_voucher");
+  });
 });

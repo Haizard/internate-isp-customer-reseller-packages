@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { RouterAdaptersService } from "./routerAdapters.service";
-import { applyProfileSchema, enrollRouterSchema } from "./routerAdapters.dto";
+import { applyProfileSchema, createRouterUserSchema, createVoucherSchema, enrollRouterSchema } from "./routerAdapters.dto";
 
 const service = new RouterAdaptersService();
 
@@ -19,6 +19,26 @@ export class RouterAdaptersController {
     try {
       const input = applyProfileSchema.parse(req.body);
       const result = await service.applyProfile(req.params.routerId, input, req.auth!.organizationId, req.auth!.id);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async createRouterUser(req: Request, res: Response, next: NextFunction) {
+    try {
+      const input = createRouterUserSchema.parse(req.body);
+      const result = await service.createRouterUser(req.params.routerId, input, req.auth!.organizationId, req.auth!.id);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async createVoucher(req: Request, res: Response, next: NextFunction) {
+    try {
+      const input = createVoucherSchema.parse(req.body);
+      const result = await service.createVoucher(req.params.routerId, input, req.auth!.organizationId, req.auth!.id);
       res.status(200).json({ data: result });
     } catch (err) {
       next(err);

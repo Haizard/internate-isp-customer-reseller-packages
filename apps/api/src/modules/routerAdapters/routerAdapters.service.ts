@@ -1,6 +1,6 @@
 import { prisma } from "../../prisma/client";
 import { AppError } from "../../middleware/errorHandler";
-import type { ApplyProfileInput, EnrollRouterInput } from "./routerAdapters.dto";
+import type { ApplyProfileInput, CreateRouterUserInput, CreateVoucherInput, EnrollRouterInput } from "./routerAdapters.dto";
 import type { RouterAdapterCommandResult, RouterAdapterStatus } from "./routerAdapters.types";
 import type { AdapterCommandEnvelope, AdapterConfig } from "./routerAdapters.contract";
 import type { RouterAdapterLifecycleState } from "./routerAdapters.lifecycle";
@@ -8,11 +8,27 @@ import { MikroTikAdapter } from "./mikrotikAdapter";
 
 export class RouterAdaptersService {
   private buildAdapterConfig(input: EnrollRouterInput): AdapterConfig {
-    return {
-      adapterKind: input.adapterType,
-      connectionMode: input.adapterType === "mikrotik" ? "api" : "simulator",
+    const adapterKind = input.adapterType;
+    const config: AdapterConfig = {
+      adapterKind,
+      connectionMode: adapterKind === "mikrotik" ? "api" : "simulator",
       pairingCode: input.pairingCode,
     };
+
+    if (process.env.ROUTER_ADAPTER_HOST) {
+      config.host = process.env.ROUTER_ADAPTER_HOST;
+    }
+    if (process.env.ROUTER_ADAPTER_PORT) {
+      config.port = Number(process.env.ROUTER_ADAPTER_PORT);
+    }
+    if (process.env.ROUTER_ADAPTER_USERNAME) {
+      config.username = process.env.ROUTER_ADAPTER_USERNAME;
+    }
+    if (process.env.ROUTER_ADAPTER_PASSWORD) {
+      config.password = process.env.ROUTER_ADAPTER_PASSWORD;
+    }
+
+    return config;
   }
 
   private buildCommandEnvelope(routerId: string, kind: AdapterCommandEnvelope["kind"], payload: Record<string, unknown>): AdapterCommandEnvelope {
@@ -162,6 +178,81 @@ export class RouterAdaptersService {
       status: "APPLIED",
       configurationVersion,
       appliedProfile,
+      appliedAt: new Date().toISOString(),
+      command,
+    } as RouterAdapterCommandResult & { command: AdapterCommandEnvelope };
+  }
+
+  async createRouterUser(routerId: string, input: CreateRouterUserInput, organizationId: string, actorUserId: string) {
+    const router = await prisma.router.findFirst({
+      where: { id: routerId, location: { organizationId } },
+    });
+
+    if (!router) {
+      throw new AppError(404, "Router not found in your scope");
+    }
+
+    const command = this.buildCommandEnvelope(routerId, "create_user", {
+      username: input.username,
+      password: input.password,
+      profileName: input.profileName ?? "default",
+      expiresAt: input.expiresAt ?? null,
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        actorUserId,
+        action: "CREATE_ROUTER_USER",
+        entityType: "RouterAdapter",
+        entityId: routerId,
+        afterJson: { username: input.username, profileName: input.profileName ?? "default" },
+      },
+    });
+
+    await this.persistCommand(command);
+
+    return {
+      routerId,
+      adapterType: "simulator",
+      status: "APPLIED",
+      configurationVersion: 1,
+      appliedAt: new Date().toISOString(),
+      command,
+    } as RouterAdapterCommandResult & { command: AdapterCommandEnvelope };
+  }
+
+  async createVoucher(routerId: string, input: CreateVoucherInput, organizationId: string, actorUserId: string) {
+    const router = await prisma.router.findFirst({
+      where: { id: routerId, location: { organizationId } },
+    });
+
+    if (!router) {
+      throw new AppError(404, "Router not found in your scope");
+    }
+
+    const command = this.buildCommandEnvelope(routerId, "create_voucher", {
+      code: input.code,
+      dataGb: input.dataGb ?? 0,
+      durationHours: input.durationHours ?? 0,
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        actorUserId,
+        action: "CREATE_VOUCHER",
+        entityType: "RouterAdapter",
+        entityId: routerId,
+        afterJson: { code: input.code, dataGb: input.dataGb ?? 0 },
+      },
+    });
+
+    await this.persistCommand(command);
+
+    return {
+      routerId,
+      adapterType: "simulator",
+      status: "APPLIED",
+      configurationVersion: 1,
       appliedAt: new Date().toISOString(),
       command,
     } as RouterAdapterCommandResult & { command: AdapterCommandEnvelope };

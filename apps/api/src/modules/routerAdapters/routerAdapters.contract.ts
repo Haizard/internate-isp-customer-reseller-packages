@@ -3,7 +3,7 @@ export type AdapterKind = "simulator" | "mikrotik";
 export interface AdapterCommandEnvelope {
   id: string;
   routerId: string;
-  kind: "apply_profile" | "create_user" | "disconnect_user" | "heartbeat";
+  kind: "apply_profile" | "create_user" | "create_voucher" | "disconnect_user" | "heartbeat";
   payload: Record<string, unknown>;
   status: "PENDING" | "APPLIED" | "FAILED";
   createdAt: string;

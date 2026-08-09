@@ -11,6 +11,8 @@ router.use(authGuard, tenantGuard);
 
 router.post("/:routerId/enroll", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.enrollRouter);
 router.post("/:routerId/profile", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.applyProfile);
+router.post("/:routerId/users", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.createRouterUser);
+router.post("/:routerId/vouchers", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.createVoucher);
 router.get("/:routerId/status", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getStatus);
 router.get("/:routerId/sessions", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getSessionSnapshot);
 router.get("/:routerId/lifecycle", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getLifecycleState);
