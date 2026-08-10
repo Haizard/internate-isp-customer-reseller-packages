@@ -135,3 +135,31 @@
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
 }
+
+/* Custom keyframe animations (Tailwind v4 theme animations) */
+@theme {
+  --animate-nudge: nudge 4.5s ease-in-out infinite;
+
+  @keyframes nudge {
+    0%,
+    84%,
+    100% {
+      transform: translateX(0) rotate(0deg);
+    }
+    86% {
+      transform: translateX(-3px) rotate(-2deg);
+    }
+    89% {
+      transform: translateX(3px) rotate(2deg);
+    }
+    92% {
+      transform: translateX(-3px) rotate(-2deg);
+    }
+    95% {
+      transform: translateX(2px) rotate(1deg);
+    }
+    98% {
+      transform: translateX(-1px) rotate(0deg);
+    }
+  }
+}

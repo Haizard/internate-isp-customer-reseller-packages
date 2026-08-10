@@ -23,6 +23,8 @@ const paths: Record<string, string> = {
   menu: "M3 12h18M3 6h18M3 18h18",
   alert: "M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01",
   check: "M20 6 9 17l-5-5",
+  download: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",
+  x: "M18 6 6 18M6 6l12 12",
 };
 
 export type IconTone = "blue" | "green" | "orange" | "red" | "purple" | "teal" | "gray";
