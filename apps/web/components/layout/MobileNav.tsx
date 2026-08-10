@@ -6,21 +6,29 @@ import { logout } from "@/lib/auth";
 
 export function MobileTabBar({ items, accent }: { items: { href: string; label: string; icon: string }[]; accent: string }) {
   const pathname = usePathname();
-  const items_ = items.slice(0, 5);
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 glass-strong border-t border-white/60">
-      <div className="grid grid-cols-5 h-[68px] pb-[env(safe-area-inset-bottom)]">
-        {items_.map((item) => {
+      <div className="flex h-[68px] pb-[env(safe-area-inset-bottom)]">
+        {items.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <a
               key={item.href}
               href={item.href}
-              className="flex flex-col items-center justify-center gap-0.5 text-caption"
-              style={{ color: active ? accent : undefined }}
+              className="flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 text-caption"
             >
-              <Icon name={item.icon} size={20} className={active ? undefined : "text-text-secondary"} />
-              <span className={`text-[10px] font-semibold ${active ? "" : "text-text-secondary"}`}>{item.label}</span>
+              <span
+                className="flex items-center justify-center w-11 h-7 rounded-pill transition-all duration-[280ms]"
+                style={active ? { backgroundColor: `${accent}26`, color: accent } : undefined}
+              >
+                <Icon name={item.icon} size={20} className={active ? undefined : "text-text-secondary"} />
+              </span>
+              <span
+                className={`text-[10px] font-semibold truncate max-w-full px-1 ${active ? "" : "text-text-secondary"}`}
+                style={active ? { color: accent } : undefined}
+              >
+                {item.label}
+              </span>
             </a>
           );
         })}
