@@ -41,51 +41,51 @@ export default function Mvp2Page() {
       />
 
       {error ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+        <div className="rounded-2xl border border-accent-orange/25 bg-accent-orange/10 p-4 text-sm text-accent-orange">
           {error}
         </div>
       ) : null}
 
       {state ? (
         <div className="grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-sm backdrop-blur">
-            <h2 className="text-lg font-semibold">Adapter status</h2>
-            <dl className="mt-4 space-y-3 text-sm text-slate-600">
+          <div className="glass card-tint card-tint-blue rounded-2xl p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-text-primary">Adapter status</h2>
+            <dl className="mt-4 space-y-3 text-sm text-text-secondary">
               <div className="flex justify-between">
                 <dt>Router</dt>
-                <dd className="font-medium text-slate-900">{state.routerId}</dd>
+                <dd className="font-medium text-text-primary">{state.routerId}</dd>
               </div>
               <div className="flex justify-between">
                 <dt>Adapter</dt>
-                <dd className="font-medium text-slate-900">{state.adapterKind}</dd>
+                <dd className="font-medium text-text-primary">{state.adapterKind}</dd>
               </div>
               <div className="flex justify-between">
                 <dt>Pending commands</dt>
-                <dd className="font-medium text-slate-900">{state.pendingCommands}</dd>
+                <dd className="font-medium text-text-primary">{state.pendingCommands}</dd>
               </div>
             </dl>
           </div>
 
-          <div className="rounded-2xl border border-white/60 bg-white/60 p-6 shadow-sm backdrop-blur">
-            <h2 className="text-lg font-semibold">Reconciliation</h2>
-            <dl className="mt-4 space-y-3 text-sm text-slate-600">
+          <div className="glass card-tint card-tint-purple rounded-2xl p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-text-primary">Reconciliation</h2>
+            <dl className="mt-4 space-y-3 text-sm text-text-secondary">
               <div className="flex justify-between">
                 <dt>Status</dt>
-                <dd className="font-medium text-slate-900">{state.reconciliation.status}</dd>
+                <dd className="font-medium text-text-primary">{state.reconciliation.status}</dd>
               </div>
               <div className="flex justify-between">
                 <dt>Desired</dt>
-                <dd className="font-medium text-slate-900">{JSON.stringify(state.reconciliation.desiredJson)}</dd>
+                <dd className="font-medium text-text-primary">{JSON.stringify(state.reconciliation.desiredJson)}</dd>
               </div>
               <div className="flex justify-between">
                 <dt>Applied</dt>
-                <dd className="font-medium text-slate-900">{JSON.stringify(state.reconciliation.appliedJson)}</dd>
+                <dd className="font-medium text-text-primary">{JSON.stringify(state.reconciliation.appliedJson)}</dd>
               </div>
             </dl>
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-white/60 bg-white/60 p-6 text-sm text-slate-600 shadow-sm backdrop-blur">
+        <div className="glass rounded-2xl p-6 text-sm text-text-secondary shadow-sm">
           Loading adapter lifecycle...
         </div>
       )}

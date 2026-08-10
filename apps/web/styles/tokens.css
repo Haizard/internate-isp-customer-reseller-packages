@@ -27,6 +27,35 @@
   --accent-purple: #bf5af2;
   --accent-teal: #40c8e0;
 
+  /* Accent gradients (soft -> vivid) for tiles, buttons, charts */
+  --grad-blue: linear-gradient(135deg, #5aa7ff 0%, #0a84ff 55%, #0063d6 100%);
+  --grad-green: linear-gradient(135deg, #5ddb78 0%, #2fb45c 55%, #1d9c46 100%);
+  --grad-orange: linear-gradient(135deg, #ffc24d 0%, #ff9f0a 55%, #f2761e 100%);
+  --grad-red: linear-gradient(135deg, #ff6b62 0%, #ff453a 55%, #dd2f26 100%);
+  --grad-purple: linear-gradient(135deg, #d88ff7 0%, #bf5af2 55%, #9a34d6 100%);
+  --grad-teal: linear-gradient(135deg, #6fd9ec 0%, #40c8e0 55%, #17a9c9 100%);
+  --grad-gray: linear-gradient(135deg, #c7c7cc 0%, #8e8e93 100%);
+
+  /* Accent soft tints (icon-chip + card surfaces) */
+  --tint-blue: rgba(10, 132, 255, 0.1);
+  --tint-green: rgba(48, 209, 88, 0.12);
+  --tint-orange: rgba(255, 159, 10, 0.12);
+  --tint-red: rgba(255, 69, 58, 0.1);
+  --tint-purple: rgba(191, 90, 242, 0.12);
+  --tint-teal: rgba(64, 200, 224, 0.12);
+
+  /* Card top tint strip (subtle gradient under glass) */
+  --card-tint-blue: linear-gradient(180deg, rgba(10, 132, 255, 0.07), transparent 60%);
+  --card-tint-purple: linear-gradient(180deg, rgba(191, 90, 242, 0.07), transparent 60%);
+  --card-tint-teal: linear-gradient(180deg, rgba(64, 200, 224, 0.07), transparent 60%);
+  --card-tint-green: linear-gradient(180deg, rgba(48, 209, 88, 0.07), transparent 60%);
+  --card-tint-orange: linear-gradient(180deg, rgba(255, 159, 10, 0.07), transparent 60%);
+
+  /* Hairline / table row dividers */
+  --hairline: rgba(60, 60, 67, 0.1);
+  --hairline-accent: rgba(10, 132, 255, 0.14);
+  --table-head: rgba(10, 132, 255, 0.08);
+
   /* Text */
   --text-primary: #1c1c1e;
   --text-secondary: #6e6e73;

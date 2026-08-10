@@ -23,9 +23,11 @@ export function Button({
   const widths = fullWidth ? "w-full" : "px-5";
 
   const variants = {
-    primary: "bg-accent-blue text-white shadow-sm",
+    primary:
+      "text-white shadow-md bg-gradient-to-br from-[#5aa7ff] via-accent-blue to-[#0063d6] hover:brightness-105",
     secondary: "bg-white/70 text-accent-blue border border-white/60 backdrop-blur",
-    destructive: "bg-accent-red text-white shadow-sm",
+    destructive:
+      "text-white shadow-md bg-gradient-to-br from-[#ff6b62] via-accent-red to-[#dd2f26] hover:brightness-105",
     ghost: "bg-transparent text-accent-blue",
   };
 

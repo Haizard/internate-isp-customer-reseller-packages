@@ -42,7 +42,7 @@ export default function RegisterPage() {
     <div className="flex-1 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-accent-purple flex items-center justify-center text-white shadow-md mb-4">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md mb-4 bg-gradient-to-br from-[#d88ff7] via-[#bf5af2] to-[#9a34d6]">
             <Icon name="users" size={28} />
           </div>
           <h1 className="text-title-1 font-bold text-text-primary">Become a Reseller</h1>

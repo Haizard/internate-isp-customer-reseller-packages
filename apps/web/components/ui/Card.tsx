@@ -10,7 +10,7 @@ export function Card({ children, className = "", onClick }: CardProps) {
   return (
     <div
       onClick={onClick}
-      className={`glass rounded-lg shadow-sm ${onClick ? "cursor-pointer active:scale-[0.98] transition-transform" : ""} ${className}`}
+      className={`glass rounded-lg shadow-sm card-tint ${onClick ? "cursor-pointer active:scale-[0.98] transition-transform" : ""} ${className}`}
     >
       {children}
     </div>

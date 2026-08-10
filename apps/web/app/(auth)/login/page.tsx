@@ -33,7 +33,7 @@ export default function LoginPage() {
     <div className="flex-1 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-accent-blue flex items-center justify-center text-white shadow-md mb-4">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md mb-4 bg-gradient-to-br from-[#5aa7ff] via-[#0a84ff] to-[#0063d6]">
             <Icon name="router" size={28} />
           </div>
           <h1 className="text-title-1 font-bold text-text-primary">NetMaster</h1>

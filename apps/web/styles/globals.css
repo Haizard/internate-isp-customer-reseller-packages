@@ -21,6 +21,33 @@ body {
   min-height: 100vh;
 }
 
+/* Decorative aurora blobs — colored light behind the glass panels */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+body::before {
+  width: 480px;
+  height: 480px;
+  top: -140px;
+  right: -120px;
+  background: radial-gradient(circle, rgba(10, 132, 255, 0.32), transparent 68%);
+}
+
+body::after {
+  width: 420px;
+  height: 420px;
+  bottom: -140px;
+  left: -120px;
+  background: radial-gradient(circle, rgba(191, 90, 242, 0.28), transparent 68%);
+}
+
 /* Glass surface helper (design-system rule: every panel is glass) */
 .glass {
   background: var(--glass-surface);
@@ -43,9 +70,106 @@ body {
   border: 1px solid var(--glass-border);
 }
 
-/* iOS grouped-form row divider */
+/* Subtle colored tint strip across the top of a glass card */
+.card-tint {
+  position: relative;
+  overflow: hidden;
+}
+
+.card-tint::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 96px;
+  pointer-events: none;
+}
+
+.card-tint-blue::before {
+  background: var(--card-tint-blue);
+}
+
+.card-tint-purple::before {
+  background: var(--card-tint-purple);
+}
+
+.card-tint-teal::before {
+  background: var(--card-tint-teal);
+}
+
+.card-tint-green::before {
+  background: var(--card-tint-green);
+}
+
+.card-tint-orange::before {
+  background: var(--card-tint-orange);
+}
+
+/* Gradient text for headings */
+.text-gradient {
+  background: var(--grad-blue);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.text-gradient-purple {
+  background: var(--grad-purple);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* iOS grouped-form row divider + tinted variant */
 .hairline {
-  border-top: 1px solid rgba(60, 60, 67, 0.1);
+  border-top: 1px solid var(--hairline);
+}
+
+.hairline-accent {
+  border-top: 1px solid var(--hairline-accent);
+}
+
+/* Data table styling (used by list-style reports) */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table thead th {
+  text-align: left;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: var(--table-head);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--hairline-accent);
+}
+
+.data-table tbody td {
+  padding: 12px 14px;
+  font-size: var(--text-footnote);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr {
+  transition: background 0.18s ease;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(10, 132, 255, 0.05);
+}
+
+/* Form focus ring */
+.focus-ring {
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25);
 }
 
 /* iOS spring easing for transitions */
@@ -57,12 +181,31 @@ body {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-/* Focus ring */
-.focus-ring {
-  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25);
+/* Slim themed scrollbars */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(10, 132, 255, 0.25);
+  border-radius: var(--radius-pill);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(10, 132, 255, 0.4);
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::selection {
+  background: rgba(10, 132, 255, 0.25);
 }

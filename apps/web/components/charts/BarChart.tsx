@@ -28,7 +28,12 @@ export function BarChart({
               </span>
               <div
                 className="w-full rounded-t-md transition-opacity group-hover:opacity-80"
-                style={{ height: h, background: accent, opacity: 0.75 + (d.value / max) * 0.25 }}
+                style={{
+                  height: h,
+                  background: `linear-gradient(180deg, ${accent}, ${accent}66)`,
+                  boxShadow: `0 4px 10px ${accent}33`,
+                  opacity: 0.8 + (d.value / max) * 0.2,
+                }}
               />
             </div>
           );

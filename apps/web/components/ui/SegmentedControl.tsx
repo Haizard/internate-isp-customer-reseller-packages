@@ -22,7 +22,9 @@ export function SegmentedControl<T extends string>({
             key={opt.value}
             onClick={() => onChange(opt.value)}
             className={`flex-1 h-9 px-4 rounded-pill text-footnote font-semibold transition-all duration-[280ms] ${
-              active ? "bg-white text-text-primary shadow-sm" : "text-text-secondary"
+              active
+                ? "bg-white text-accent-blue shadow-sm ring-1 ring-inset ring-accent-blue/20"
+                : "text-text-secondary hover:text-text-primary"
             }`}
           >
             {opt.label}

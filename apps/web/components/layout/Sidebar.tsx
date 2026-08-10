@@ -17,8 +17,8 @@ export function Sidebar({ brand, items, accent, userName, userRole }: SidebarPro
     <aside className="hidden lg:flex fixed inset-y-0 left-0 w-[260px] glass flex-col z-30">
       <div className="px-6 h-16 flex items-center gap-2.5">
         <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center text-white"
-          style={{ background: accent }}
+          className="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-md"
+          style={{ background: `linear-gradient(135deg, ${accent}, ${accent}88)` }}
         >
           <Icon name="router" size={18} />
         </div>
@@ -34,8 +34,8 @@ export function Sidebar({ brand, items, accent, userName, userRole }: SidebarPro
       <div className="px-4 py-4 border-t border-black/5">
         <div className="flex items-center gap-3">
           <div
-            className="w-9 h-9 rounded-full flex items-center justify-center text-white text-footnote font-bold"
-            style={{ background: accent }}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-white text-footnote font-bold shadow-md"
+            style={{ background: `linear-gradient(135deg, ${accent}, ${accent}88)` }}
           >
             {userName
               .split(/\s+/)

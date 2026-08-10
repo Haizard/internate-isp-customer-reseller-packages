@@ -25,14 +25,29 @@ const paths: Record<string, string> = {
   check: "M20 6 9 17l-5-5",
 };
 
+export type IconTone = "blue" | "green" | "orange" | "red" | "purple" | "teal" | "gray";
+
+const toneGradients: Record<IconTone, string> = {
+  blue: "linear-gradient(135deg, #5aa7ff 0%, #0a84ff 55%, #0063d6 100%)",
+  green: "linear-gradient(135deg, #5ddb78 0%, #2fb45c 55%, #1d9c46 100%)",
+  orange: "linear-gradient(135deg, #ffc24d 0%, #ff9f0a 55%, #f2761e 100%)",
+  red: "linear-gradient(135deg, #ff6b62 0%, #ff453a 55%, #dd2f26 100%)",
+  purple: "linear-gradient(135deg, #d88ff7 0%, #bf5af2 55%, #9a34d6 100%)",
+  teal: "linear-gradient(135deg, #6fd9ec 0%, #40c8e0 55%, #17a9c9 100%)",
+  gray: "linear-gradient(135deg, #c7c7cc 0%, #8e8e93 100%)",
+};
+
 export interface IconProps extends SVGProps<SVGSVGElement> {
   name: keyof typeof paths | string;
   size?: number;
+  /** "line" renders the classic stroke glyph; "fill" renders a colored gradient tile with a white glyph */
+  variant?: "line" | "fill";
+  tone?: IconTone;
 }
 
-export function Icon({ name, size = 22, ...props }: IconProps) {
+export function Icon({ name, size = 22, variant = "line", tone = "blue", className, style, ...props }: IconProps) {
   const d = paths[name] ?? paths.alert;
-  return (
+  const glyph = (
     <svg
       viewBox="0 0 24 24"
       width={size}
@@ -43,11 +58,35 @@ export function Icon({ name, size = 22, ...props }: IconProps) {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden
+      className={variant === "line" ? className : undefined}
+      style={variant === "line" ? style : undefined}
       {...props}
     >
       <path d={d} />
     </svg>
   );
+
+  if (variant === "fill") {
+    const tileSize = size + 14;
+    return (
+      <span
+        className={`inline-flex items-center justify-center shrink-0 ${className ?? ""}`}
+        style={{
+          width: tileSize,
+          height: tileSize,
+          borderRadius: Math.max(8, Math.round(size * 0.4)),
+          background: toneGradients[tone],
+          color: "#ffffff",
+          boxShadow: "0 4px 14px rgba(10, 50, 120, 0.22)",
+          ...style,
+        }}
+      >
+        {glyph}
+      </span>
+    );
+  }
+
+  return glyph;
 }
 
 export { paths as iconPaths };
