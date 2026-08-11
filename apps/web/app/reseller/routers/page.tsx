@@ -5,13 +5,13 @@ import { useApi } from "@/lib/useApi";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/Card";
-import { ListRow } from "@/components/ui/ListRow";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Sheet } from "@/components/ui/Sheet";
 import { StatusBadge } from "@/components/ui/Badge";
 import { LoadingState, ErrorState, EmptyState } from "@/components/ui/States";
+import { HotspotQrSheet } from "@/components/hotspot/HotspotQrSheet";
 
 interface Router {
   id: string;
@@ -33,6 +33,7 @@ export default function RoutersPage() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ name: "", macAddress: "", locationId: "" });
   const [busy, setBusy] = useState(false);
+  const [qrTarget, setQrTarget] = useState<Router | null>(null);
 
   if (loading || locations.loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
@@ -68,17 +69,28 @@ export default function RoutersPage() {
       ) : (
         <Card className="p-1">
           {routers.map((r, i) => (
-            <div key={r.id} className={i > 0 ? "hairline" : ""}>
-              <ListRow
-                title={r.name}
-                subtitle={`${r.location?.name ?? "—"} · ${r.macAddress} · ${r.customerCount ?? 0} customers`}
-                leading={
-                  <div className="w-10 h-10 rounded-full bg-[rgba(64,200,224,0.15)] text-accent-teal flex items-center justify-center">
-                    <Icon name="router" size={20} />
-                  </div>
-                }
-                trailing={<StatusBadge status={r.status} />}
-              />
+            <div key={r.id} className={`flex items-center gap-3 px-4 py-3 ${i > 0 ? "hairline" : ""}`}>
+              <div className="w-10 h-10 rounded-full bg-[rgba(64,200,224,0.15)] text-accent-teal flex items-center justify-center shrink-0">
+                <Icon name="router" size={20} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-body font-medium text-text-primary truncate">{r.name}</div>
+                <div className="text-footnote text-text-secondary truncate">
+                  {r.location?.name ?? "—"} · {r.macAddress} · {r.customerCount ?? 0} customers
+                </div>
+              </div>
+              <div className="shrink-0 flex items-center gap-2">
+                {r.location && (
+                  <button
+                    onClick={() => setQrTarget(r)}
+                    aria-label={`Show WiFi hotspot QR for ${r.name}`}
+                    className="w-8 h-8 rounded-full bg-white/70 border border-white/60 text-accent-purple inline-flex items-center justify-center transition active:scale-95 hover:bg-white"
+                  >
+                    <Icon name="qr" size={16} />
+                  </button>
+                )}
+                <StatusBadge status={r.status} />
+              </div>
             </div>
           ))}
         </Card>
@@ -108,6 +120,14 @@ export default function RoutersPage() {
           </Button>
         </div>
       </Sheet>
+
+      <HotspotQrSheet
+        open={qrTarget !== null}
+        onClose={() => setQrTarget(null)}
+        routerName={qrTarget?.name ?? ""}
+        locationName={qrTarget?.location?.name ?? ""}
+        locationId={qrTarget?.location?.id ?? ""}
+      />
     </div>
   );
 }

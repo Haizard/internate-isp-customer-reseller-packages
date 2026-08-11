@@ -1,4 +1,11 @@
-import type { AdapterCommandEnvelope, AdapterCommandResult, AdapterConfig, RouterAdapter } from "./routerAdapters.contract";
+import type {
+  AdapterCommandEnvelope,
+  AdapterCommandResult,
+  AdapterConfig,
+  AdapterQueryEnvelope,
+  AdapterQueryResult,
+  RouterAdapter,
+} from "./routerAdapters.contract";
 import { RouterOSClient } from "routeros-client";
 
 export class MikroTikAdapter implements RouterAdapter {
@@ -195,6 +202,46 @@ export class MikroTikAdapter implements RouterAdapter {
         status: "FAILED",
         configurationVersion: 1,
         message: error instanceof Error ? error.message : "RouterOS command execution failed",
+      };
+    }
+  }
+
+  async query(query: AdapterQueryEnvelope): Promise<AdapterQueryResult> {
+    if (!this.client || !this.apiMenu) {
+      return {
+        routerId: query.routerId,
+        kind: query.kind,
+        status: "FAILED",
+        data: {},
+        message: "RouterOS client is not connected",
+      };
+    }
+
+    try {
+      if (query.kind === "sessions") {
+        const sessions = await this.apiMenu.menu("/ip/hotspot/active").getAll();
+        return {
+          routerId: query.routerId,
+          kind: query.kind,
+          status: "OK",
+          data: { sessions },
+        };
+      }
+
+      return {
+        routerId: query.routerId,
+        kind: query.kind,
+        status: "FAILED",
+        data: {},
+        message: "RouterOS usage/health reads require monitoring setup; use the simulator while no device is enrolled",
+      };
+    } catch (error) {
+      return {
+        routerId: query.routerId,
+        kind: query.kind,
+        status: "FAILED",
+        data: {},
+        message: error instanceof Error ? error.message : "RouterOS query failed",
       };
     }
   }

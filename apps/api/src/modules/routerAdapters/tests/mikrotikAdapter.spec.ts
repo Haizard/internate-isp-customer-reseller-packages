@@ -1,18 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { MikroTikAdapter } from "../mikrotikAdapter";
 
+const adapter = () =>
+  new MikroTikAdapter({
+    adapterKind: "mikrotik",
+    connectionMode: "api",
+    host: "192.168.88.1",
+    port: 8728,
+    username: "admin",
+    pairingCode: "pair-123",
+  });
+
 describe("MikroTikAdapter", () => {
   it("connects in API mode and reports a prepared RouterOS path", async () => {
-    const adapter = new MikroTikAdapter({
-      adapterKind: "mikrotik",
-      connectionMode: "api",
-      host: "192.168.88.1",
-      port: 8728,
-      username: "admin",
-      pairingCode: "pair-123",
-    });
-
-    const connection = await adapter.connect();
+    const connection = await adapter().connect();
 
     expect(connection.connected).toBe(false);
     expect(connection.host).toBe("192.168.88.1");
@@ -20,16 +21,7 @@ describe("MikroTikAdapter", () => {
   });
 
   it("returns a failed execution result when the client is not connected", async () => {
-    const adapter = new MikroTikAdapter({
-      adapterKind: "mikrotik",
-      connectionMode: "api",
-      host: "192.168.88.1",
-      port: 8728,
-      username: "admin",
-      pairingCode: "pair-123",
-    });
-
-    const result = await adapter.execute({
+    const result = await adapter().execute({
       id: "cmd-3",
       routerId: "router-1",
       kind: "create_queue",
@@ -40,5 +32,21 @@ describe("MikroTikAdapter", () => {
     });
 
     expect(result.status).toBe("FAILED");
+  });
+
+  it("returns a failed query result when the client is not connected", async () => {
+    const result = await adapter().query({ routerId: "router-1", kind: "sessions" });
+
+    expect(result.status).toBe("FAILED");
+    expect(result.kind).toBe("sessions");
+    expect(result.message).toContain("not connected");
+  });
+
+  it("returns a failed query result for a disconnected health read", async () => {
+    const result = await adapter().query({ routerId: "router-1", kind: "health" });
+
+    expect(result.status).toBe("FAILED");
+    expect(result.kind).toBe("health");
+    expect(result.message).toContain("not connected");
   });
 });

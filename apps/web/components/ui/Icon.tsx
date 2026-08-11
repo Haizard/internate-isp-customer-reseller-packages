@@ -25,6 +25,7 @@ const paths: Record<string, string> = {
   check: "M20 6 9 17l-5-5",
   download: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3",
   x: "M18 6 6 18M6 6l12 12",
+  qr: "M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z",
 };
 
 export type IconTone = "blue" | "green" | "orange" | "red" | "purple" | "teal" | "gray";

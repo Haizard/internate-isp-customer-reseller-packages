@@ -17,8 +17,24 @@ export interface AdapterCommandEnvelope {
   kind: RouterAdapterCommandKind;
   payload: Record<string, unknown>;
   status: "PENDING" | "APPLIED" | "FAILED";
+  idempotencyKey?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export type AdapterQueryKind = "sessions" | "usage" | "health";
+
+export interface AdapterQueryEnvelope {
+  routerId: string;
+  kind: AdapterQueryKind;
+}
+
+export interface AdapterQueryResult {
+  routerId: string;
+  kind: AdapterQueryKind;
+  status: "OK" | "FAILED";
+  data: Record<string, unknown>;
+  message?: string;
 }
 
 export interface AdapterConfig {
@@ -43,4 +59,5 @@ export interface RouterAdapter {
   readonly kind: AdapterKind;
   connect(): Promise<unknown>;
   execute(command: AdapterCommandEnvelope): Promise<AdapterCommandResult>;
+  query(query: AdapterQueryEnvelope): Promise<AdapterQueryResult>;
 }
