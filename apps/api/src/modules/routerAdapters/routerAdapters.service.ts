@@ -156,6 +156,28 @@ export class RouterAdaptersService {
     return config;
   }
 
+  private async resolveSimulation(routerId: string) {
+    const reconciliationClient = (prisma as any).routerAdapterReconciliation;
+    const reconciliation = reconciliationClient?.findFirst
+      ? await reconciliationClient.findFirst({ where: { routerId } })
+      : null;
+    const simulation = (reconciliation?.desiredJson as { simulation?: { offline?: boolean; expiry?: boolean } } | null)?.simulation;
+    return {
+      offline: simulation?.offline === true,
+      expiry: simulation?.expiry === true,
+    };
+  }
+
+  private async resolveAdapterConfig(routerId: string, adapterKind: AdapterKind): Promise<AdapterConfig> {
+    const config = this.buildRouterAdapterConfig(routerId, adapterKind);
+    if (adapterKind === "simulator") {
+      const simulation = await this.resolveSimulation(routerId);
+      config.simulateOffline = simulation.offline;
+      config.simulateExpiry = simulation.expiry;
+    }
+    return config;
+  }
+
   private async runCommand(envelope: AdapterCommandEnvelope, adapterKind: AdapterKind, actorUserId: string) {
     if (envelope.status === "APPLIED") {
       return {
@@ -164,7 +186,7 @@ export class RouterAdaptersService {
       };
     }
 
-    const adapter = this.buildAdapter(this.buildRouterAdapterConfig(envelope.routerId, adapterKind));
+    const adapter = this.buildAdapter(await this.resolveAdapterConfig(envelope.routerId, adapterKind));
     await adapter.connect();
     const executionResult = await adapter.execute(envelope);
 
@@ -454,7 +476,7 @@ export class RouterAdaptersService {
   private async queryRouter(routerId: string, organizationId: string, kind: AdapterQueryKind) {
     const router = await this.assertRouterInScope(routerId, organizationId);
     const adapterKind = await this.getAdapterKind(routerId);
-    const adapter = this.buildAdapter(this.buildRouterAdapterConfig(routerId, adapterKind));
+    const adapter = this.buildAdapter(await this.resolveAdapterConfig(routerId, adapterKind));
     await adapter.connect();
 
     const result = await adapter.query({ routerId, kind });
@@ -654,12 +676,14 @@ export class RouterAdaptersService {
   async reconcile(routerId: string, organizationId: string, actorUserId: string) {
     const router = await this.assertRouterInScope(routerId, organizationId);
     const adapterKind = await this.getAdapterKind(routerId);
+    const simulation = await this.resolveSimulation(routerId);
 
     const desiredState = {
       routerId,
       routerName: router.name,
       status: router.status ?? "ACTIVE",
       configurationVersion: 1,
+      simulation,
     };
 
     const reconciliationClient = (prisma as any).routerAdapterReconciliation;
@@ -710,6 +734,51 @@ export class RouterAdaptersService {
       appliedState: desiredState,
       reconciledAt: new Date().toISOString(),
     };
+  }
+
+  async setSimulation(routerId: string, input: { offline?: boolean; expiry?: boolean }, organizationId: string, actorUserId: string) {
+    await this.assertRouterInScope(routerId, organizationId);
+    const reconciliationClient = (prisma as any).routerAdapterReconciliation;
+    const existing = reconciliationClient?.findFirst
+      ? await reconciliationClient.findFirst({ where: { routerId } })
+      : null;
+
+    const desiredJson = (existing?.desiredJson as Record<string, unknown> | null) ?? { routerId, configurationVersion: 1 };
+    const current = (desiredJson.simulation as { offline?: boolean; expiry?: boolean } | undefined) ?? { offline: false, expiry: false };
+    const simulation = {
+      offline: input.offline ?? current.offline ?? false,
+      expiry: input.expiry ?? current.expiry ?? false,
+    };
+    desiredJson.simulation = simulation;
+
+    const adapterKind = existing?.adapterKind ?? "simulator";
+    if (reconciliationClient?.upsert) {
+      try {
+        await reconciliationClient.upsert({
+          where: { routerId },
+          create: { routerId, adapterKind, status: "APPLIED", desiredJson, appliedJson: desiredJson },
+          update: { adapterKind, status: "APPLIED", desiredJson, appliedJson: desiredJson, updatedAt: new Date().toISOString() },
+        });
+      } catch (error) {
+        console.warn("Unable to persist router adapter simulation state", error);
+      }
+    }
+
+    try {
+      await prisma.auditLog.create({
+        data: {
+          actorUserId,
+          action: "SET_SIMULATION",
+          entityType: "RouterAdapter",
+          entityId: routerId,
+          afterJson: { simulation },
+        },
+      });
+    } catch (error) {
+      console.warn("Unable to audit router adapter simulation state", error);
+    }
+
+    return { routerId, simulation };
   }
 
   async retryCommand(routerId: string, commandId: string, organizationId: string, actorUserId: string) {

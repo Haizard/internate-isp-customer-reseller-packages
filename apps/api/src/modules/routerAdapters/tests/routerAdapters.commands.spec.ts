@@ -31,7 +31,7 @@ beforeEach(() => {
   commands.create.mockResolvedValue({} as never);
   commands.findMany.mockResolvedValue([] as never);
   commands.update.mockResolvedValue({} as never);
-  prisma.auditLog.create.mockResolvedValue({} as never);
+  (prisma.auditLog.create as ReturnType<typeof vi.fn>).mockResolvedValue({} as never);
 });
 
 describe("RouterAdaptersService command lifecycle", () => {
@@ -150,6 +150,28 @@ describe("RouterAdaptersService retryCommand", () => {
     } as never);
 
     await expect(service.retryCommand("router-1", "cmd-ok", "org-1", "user-1")).rejects.toBeInstanceOf(AppError);
+  });
+});
+
+describe("RouterAdaptersService setSimulation", () => {
+  it("persists offline/expiry simulation flags in the reconciliation desired state", async () => {
+    reconciliations.findFirst.mockResolvedValue({
+      id: "recon-1",
+      routerId: "router-1",
+      adapterKind: "simulator",
+      desiredJson: { routerId: "router-1", configurationVersion: 1 },
+    } as never);
+
+    const result = await service.setSimulation("router-1", { offline: true }, "org-1", "user-1");
+
+    expect(result.simulation).toMatchObject({ offline: true, expiry: false });
+    expect(reconciliations.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        update: expect.objectContaining({
+          desiredJson: expect.objectContaining({ simulation: expect.objectContaining({ offline: true }) }),
+        }),
+      }),
+    );
   });
 });
 

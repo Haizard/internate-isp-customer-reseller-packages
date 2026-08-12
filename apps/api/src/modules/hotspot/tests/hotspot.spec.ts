@@ -8,15 +8,11 @@ vi.mock("../../../prisma/client", () => ({
   },
 }));
 
-vi.mock("../routerAdapters/routerAdapters.service", () => {
-  const { RouterAdaptersService } = vi.importActual("../routerAdapters/routerAdapters.service");
-  const mockCreateVoucher = vi.fn().mockResolvedValue({ status: "APPLIED" });
-  return {
-    RouterAdaptersService: vi.fn().mockImplementation(() => ({
-      createVoucher: mockCreateVoucher,
-    })),
-  };
-});
+vi.mock("../routerAdapters/routerAdapters.service", () => ({
+  RouterAdaptersService: class {
+    createVoucher = vi.fn().mockResolvedValue({ status: "APPLIED" });
+  },
+}));
 
 import { prisma } from "../../../prisma/client";
 import { HotspotService } from "../hotspot.service";
@@ -31,13 +27,21 @@ const location = {
 
 const service = new HotspotService();
 
+const mocks = {
+  locationFindUnique: vi.mocked(prisma.location.findUnique),
+  voucherFindUnique: vi.mocked(prisma.voucher.findUnique),
+  voucherFindMany: vi.mocked(prisma.voucher.findMany),
+  voucherUpdate: vi.mocked(prisma.voucher.update),
+  packageFindMany: vi.mocked(prisma.package.findMany),
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
-  prisma.location.findUnique.mockResolvedValue(location as never);
-  prisma.voucher.findMany.mockResolvedValue([
+  mocks.locationFindUnique.mockResolvedValue(location as never);
+  mocks.voucherFindMany.mockResolvedValue([
     { id: "v-1", dataGb: 10, durationHours: 24, expiresAt: null },
   ] as never);
-  prisma.package.findMany.mockResolvedValue([
+  mocks.packageFindMany.mockResolvedValue([
     { id: "p-1", name: "Daily 10GB", speedMbps: 20, dataCapGb: 10, priceCents: 2000, currency: "TZS" },
   ] as never);
 });
@@ -48,13 +52,13 @@ describe("HotspotService.getHotspot", () => {
 
     expect(hotspot.locationName).toBe("Kariakoo Cafe");
     expect(hotspot.organization.name).toBe("DukaNet");
-    expect(hotspot.router.name).toBe("Kariakoo AP");
+    expect(hotspot.router?.name).toBe("Kariakoo AP");
     expect(hotspot.vouchers).toHaveLength(1);
     expect(hotspot.packages[0].priceCents).toBe(2000);
   });
 
   it("rejects an unknown or inactive hotspot", async () => {
-    prisma.location.findUnique.mockResolvedValue(null as never);
+    mocks.locationFindUnique.mockResolvedValue(null as never);
 
     await expect(service.getHotspot("missing")).rejects.toBeInstanceOf(AppError);
   });
@@ -62,7 +66,7 @@ describe("HotspotService.getHotspot", () => {
 
 describe("HotspotService.redeem", () => {
   it("redeems an unused voucher and provisions it on the router", async () => {
-    prisma.voucher.findUnique.mockResolvedValue({
+    mocks.voucherFindUnique.mockResolvedValue({
       id: "v-1",
       code: "AAAA-BBBB",
       organizationId: "org-1",
@@ -71,7 +75,7 @@ describe("HotspotService.redeem", () => {
       expiresAt: null,
       status: "UNUSED",
     } as never);
-    prisma.voucher.update.mockResolvedValue({
+    mocks.voucherUpdate.mockResolvedValue({
       id: "v-1",
       code: "AAAA-BBBB",
       dataGb: 10,
@@ -83,13 +87,13 @@ describe("HotspotService.redeem", () => {
     const result = await service.redeem("loc-1", { code: "aaaa-bbbb" });
 
     expect(result.redeemed).toBe(true);
-    expect(prisma.voucher.update).toHaveBeenCalledWith(
+    expect(mocks.voucherUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ status: "USED" }) }),
     );
   });
 
   it("rejects a voucher from a different organization", async () => {
-    prisma.voucher.findUnique.mockResolvedValue({
+    mocks.voucherFindUnique.mockResolvedValue({
       id: "v-2",
       code: "CCCC-DDDD",
       organizationId: "org-other",
@@ -100,7 +104,7 @@ describe("HotspotService.redeem", () => {
   });
 
   it("rejects an already redeemed voucher", async () => {
-    prisma.voucher.findUnique.mockResolvedValue({
+    mocks.voucherFindUnique.mockResolvedValue({
       id: "v-1",
       code: "AAAA-BBBB",
       organizationId: "org-1",
@@ -111,7 +115,7 @@ describe("HotspotService.redeem", () => {
   });
 
   it("rejects an expired voucher", async () => {
-    prisma.voucher.findUnique.mockResolvedValue({
+    mocks.voucherFindUnique.mockResolvedValue({
       id: "v-1",
       code: "AAAA-BBBB",
       organizationId: "org-1",

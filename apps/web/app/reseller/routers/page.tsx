@@ -12,6 +12,7 @@ import { Sheet } from "@/components/ui/Sheet";
 import { StatusBadge } from "@/components/ui/Badge";
 import { LoadingState, ErrorState, EmptyState } from "@/components/ui/States";
 import { HotspotQrSheet } from "@/components/hotspot/HotspotQrSheet";
+import { RouterAdapterPanel } from "@/components/router/RouterAdapterPanel";
 
 interface Router {
   id: string;
@@ -34,6 +35,7 @@ export default function RoutersPage() {
   const [form, setForm] = useState({ name: "", macAddress: "", locationId: "" });
   const [busy, setBusy] = useState(false);
   const [qrTarget, setQrTarget] = useState<Router | null>(null);
+  const [panelTarget, setPanelTarget] = useState<Router | null>(null);
 
   if (loading || locations.loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
@@ -55,7 +57,7 @@ export default function RoutersPage() {
     <div>
       <PageHeader
         title="Routers"
-        subtitle="Simulated gateways — no real device pairing in MVP"
+        subtitle="Tap a router to manage its simulated gateway adapter — sessions, commands, and actions"
         action={
           <Button onClick={() => setOpen(true)}>
             <Icon name="plus" size={18} />
@@ -70,15 +72,21 @@ export default function RoutersPage() {
         <Card className="p-1">
           {routers.map((r, i) => (
             <div key={r.id} className={`flex items-center gap-3 px-4 py-3 ${i > 0 ? "hairline" : ""}`}>
-              <div className="w-10 h-10 rounded-full bg-[rgba(64,200,224,0.15)] text-accent-teal flex items-center justify-center shrink-0">
-                <Icon name="router" size={20} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-body font-medium text-text-primary truncate">{r.name}</div>
-                <div className="text-footnote text-text-secondary truncate">
-                  {r.location?.name ?? "—"} · {r.macAddress} · {r.customerCount ?? 0} customers
+              <button
+                onClick={() => setPanelTarget(r)}
+                className="flex items-center gap-3 flex-1 min-w-0 text-left"
+                aria-label={`Open adapter panel for ${r.name}`}
+              >
+                <div className="w-10 h-10 rounded-full bg-[rgba(64,200,224,0.15)] text-accent-teal flex items-center justify-center shrink-0">
+                  <Icon name="router" size={20} />
                 </div>
-              </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-body font-medium text-text-primary truncate">{r.name}</div>
+                  <div className="text-footnote text-text-secondary truncate">
+                    {r.location?.name ?? "—"} · {r.macAddress} · {r.customerCount ?? 0} customers
+                  </div>
+                </div>
+              </button>
               <div className="shrink-0 flex items-center gap-2">
                 {r.location && (
                   <button
@@ -127,6 +135,12 @@ export default function RoutersPage() {
         routerName={qrTarget?.name ?? ""}
         locationName={qrTarget?.location?.name ?? ""}
         locationId={qrTarget?.location?.id ?? ""}
+      />
+
+      <RouterAdapterPanel
+        router={panelTarget ? { id: panelTarget.id, name: panelTarget.name } : null}
+        open={panelTarget !== null}
+        onClose={() => setPanelTarget(null)}
       />
     </div>
   );

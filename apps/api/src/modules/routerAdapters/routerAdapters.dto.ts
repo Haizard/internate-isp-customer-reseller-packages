@@ -64,6 +64,11 @@ export const createHotspotProfileSchema = z.object({
   idempotencyKey: z.string().min(1).optional(),
 });
 
+export const setSimulationSchema = z.object({
+  offline: z.boolean().optional(),
+  expiry: z.boolean().optional(),
+});
+
 export type ApplyProfileInput = z.infer<typeof applyProfileSchema>;
 export type CreateRouterUserInput = z.infer<typeof createRouterUserSchema>;
 export type CreateVoucherInput = z.infer<typeof createVoucherSchema>;

@@ -38,4 +38,58 @@ describe("SimulatorAdapter.query", () => {
     expect(result.data.memoryPercent).toBeDefined();
     expect(result.data.status).toBe("ACTIVE");
   });
+
+  it("fails sessions read when simulating an offline gateway", async () => {
+    const offlineAdapter = new SimulatorAdapter({
+      adapterKind: "simulator",
+      connectionMode: "simulator",
+      pairingCode: "router-1",
+      simulateOffline: true,
+    });
+
+    const connection = await offlineAdapter.connect();
+    const result = await offlineAdapter.query({ routerId: "router-1", kind: "sessions" });
+
+    expect(connection.connected).toBe(false);
+    expect(result.status).toBe("FAILED");
+    expect(result.message).toContain("offline");
+  });
+
+  it("fails command execution when simulating an offline gateway", async () => {
+    const offlineAdapter = new SimulatorAdapter({
+      adapterKind: "simulator",
+      connectionMode: "simulator",
+      pairingCode: "router-1",
+      simulateOffline: true,
+    });
+
+    const result = await offlineAdapter.execute({
+      id: "cmd-1",
+      routerId: "router-1",
+      kind: "create_queue",
+      payload: { name: "q-1" },
+      status: "PENDING",
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+    });
+
+    expect(result.status).toBe("FAILED");
+    expect(result.message).toContain("offline");
+  });
+
+  it("reports expired sessions when simulating expiry", async () => {
+    const expiryAdapter = new SimulatorAdapter({
+      adapterKind: "simulator",
+      connectionMode: "simulator",
+      pairingCode: "router-1",
+      simulateExpiry: true,
+    });
+
+    const result = await expiryAdapter.query({ routerId: "router-1", kind: "sessions" });
+
+    expect(result.status).toBe("OK");
+    expect(result.data.expiredSessions).toBe(1);
+    const clients = result.data.clients as { expired?: boolean }[];
+    expect(clients.some((client) => client.expired === true)).toBe(true);
+  });
 });

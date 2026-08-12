@@ -45,6 +45,10 @@ export interface AdapterConfig {
   password?: string;
   pairingCode?: string;
   connectionMode: "simulator" | "api";
+  /** Simulator-only: simulate a gateway that cannot be reached. */
+  simulateOffline?: boolean;
+  /** Simulator-only: report expired customer sessions in session reads. */
+  simulateExpiry?: boolean;
 }
 
 export interface AdapterCommandResult {

@@ -10,6 +10,7 @@ import {
   createVoucherSchema,
   disconnectUserSchema,
   enrollRouterSchema,
+  setSimulationSchema,
   suspendUserSchema,
 } from "./routerAdapters.dto";
 
@@ -128,6 +129,16 @@ export class RouterAdaptersController {
   async reconcile(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await service.reconcile(req.params.routerId, req.auth!.organizationId, req.auth!.id);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async setSimulation(req: Request, res: Response, next: NextFunction) {
+    try {
+      const input = setSimulationSchema.parse(req.body);
+      const result = await service.setSimulation(req.params.routerId, input, req.auth!.organizationId, req.auth!.id);
       res.status(200).json({ data: result });
     } catch (err) {
       next(err);

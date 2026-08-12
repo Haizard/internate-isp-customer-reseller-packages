@@ -18,7 +18,19 @@ export class SimulatorAdapter implements RouterAdapter {
 
   constructor(private readonly config: AdapterConfig) {}
 
+  private get offline() {
+    return this.config.simulateOffline === true;
+  }
+
   async connect() {
+    if (this.offline) {
+      return {
+        connected: false,
+        host: this.config.host ?? "simulator.local",
+        mode: "simulator",
+        note: "Simulator offline — the gateway cannot be reached.",
+      };
+    }
     return {
       connected: true,
       host: this.config.host ?? "simulator.local",
@@ -28,6 +40,16 @@ export class SimulatorAdapter implements RouterAdapter {
   }
 
   async execute(command: AdapterCommandEnvelope): Promise<AdapterCommandResult> {
+    if (this.offline) {
+      return {
+        commandId: command.id,
+        routerId: command.routerId,
+        status: "FAILED",
+        configurationVersion: 1,
+        message: "Simulator offline — command could not be delivered to the gateway",
+      };
+    }
+
     switch (command.kind) {
       case "apply_profile":
         return {
@@ -106,51 +128,67 @@ export class SimulatorAdapter implements RouterAdapter {
   }
 
   async query(query: AdapterQueryEnvelope): Promise<AdapterQueryResult> {
-    switch (query.kind) {
-      case "sessions":
-        return {
-          routerId: query.routerId,
-          kind: "sessions",
-          status: "OK",
-          data: {
-            activeSessions: SAMPLE_CLIENTS.length,
-            connectedClients: SAMPLE_CLIENTS.length,
-            clients: SAMPLE_CLIENTS,
-          },
-        };
-      case "usage":
-        return {
-          routerId: query.routerId,
-          kind: "usage",
-          status: "OK",
-          data: {
-            totalBytesUsed: 2097152000,
-            usageByDay: [
-              { day: "2026-08-05", bytesUsed: 262144000 },
-              { day: "2026-08-06", bytesUsed: 419430400 },
-              { day: "2026-08-07", bytesUsed: 314572800 },
-              { day: "2026-08-08", bytesUsed: 524288000 },
-              { day: "2026-08-09", bytesUsed: 367001600 },
-              { day: "2026-08-10", bytesUsed: 209715200 },
-            ],
-          },
-        };
-      case "health":
-      default:
-        return {
-          routerId: query.routerId,
-          kind: "health",
-          status: "OK",
-          data: {
-            status: "ACTIVE",
-            uptimeSeconds: 2592000,
-            cpuPercent: 23,
-            memoryPercent: 41,
-            diskPercent: 17,
-            temperatureC: 48,
-            lastHeartbeatAt: new Date().toISOString(),
-          },
-        };
+    if (this.offline) {
+      return {
+        routerId: query.routerId,
+        kind: query.kind,
+        status: "FAILED",
+        data: {},
+        message: "Simulator offline — the gateway cannot be reached",
+      };
     }
+
+    if (query.kind === "sessions") {
+      const clients = SAMPLE_CLIENTS.map((client, index) =>
+        this.config.simulateExpiry && index === 0 ? { ...client, expired: true } : client,
+      );
+      const expiredSessions = this.config.simulateExpiry ? 1 : 0;
+
+      return {
+        routerId: query.routerId,
+        kind: "sessions",
+        status: "OK",
+        data: {
+          activeSessions: clients.length,
+          connectedClients: clients.length,
+          expiredSessions,
+          clients,
+        },
+      };
+    }
+
+    if (query.kind === "usage") {
+      return {
+        routerId: query.routerId,
+        kind: "usage",
+        status: "OK",
+        data: {
+          totalBytesUsed: 2097152000,
+          usageByDay: [
+            { day: "2026-08-05", bytesUsed: 262144000 },
+            { day: "2026-08-06", bytesUsed: 419430400 },
+            { day: "2026-08-07", bytesUsed: 314572800 },
+            { day: "2026-08-08", bytesUsed: 524288000 },
+            { day: "2026-08-09", bytesUsed: 367001600 },
+            { day: "2026-08-10", bytesUsed: 209715200 },
+          ],
+        },
+      };
+    }
+
+    return {
+      routerId: query.routerId,
+      kind: "health",
+      status: "OK",
+      data: {
+        status: "ACTIVE",
+        uptimeSeconds: 2592000,
+        cpuPercent: 23,
+        memoryPercent: 41,
+        diskPercent: 17,
+        temperatureC: 48,
+        lastHeartbeatAt: new Date().toISOString(),
+      },
+    };
   }
 }

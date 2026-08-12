@@ -20,6 +20,7 @@ router.post("/:routerId/pools", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELL
 router.post("/:routerId/pppoe-profiles", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.createPppoeProfile);
 router.post("/:routerId/hotspot-profiles", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.createHotspotProfile);
 router.post("/:routerId/reconcile", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.reconcile);
+router.post("/:routerId/simulation", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.setSimulation);
 router.get("/:routerId/status", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getStatus);
 router.get("/:routerId/sessions", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getSessions);
 router.get("/:routerId/usage", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getUsage);
