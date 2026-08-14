@@ -11,6 +11,7 @@ vi.mock("../../../prisma/client", () => ({
     device: { findMany: vi.fn() },
     usageRecord: { findMany: vi.fn() },
     serviceRequest: { create: vi.fn(), findMany: vi.fn() },
+    ticket: { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
     organization: { findUnique: vi.fn() },
     auditLog: { create: vi.fn() },
     $transaction: vi.fn(),
@@ -95,16 +96,33 @@ describe("CustomersService.redeemVoucher", () => {
 });
 
 describe("CustomersService.createRequest", () => {
-  it("creates a service request carrying the audit actor id", async () => {
-    vi.mocked(prisma.serviceRequest.create).mockResolvedValue({ id: "sr-1" } as never);
+  it("creates a ticket with source CUSTOMER and audit actor id", async () => {
+    vi.mocked(prisma.customer.findUnique).mockResolvedValue({ id: "cust-1", organizationId: "org-1" } as never);
+    vi.mocked(prisma.ticket.create).mockResolvedValue({ id: "t-1" } as never);
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as never);
     await service.createRequest("cust-1", { type: "SUPPORT", message: "slow" }, actorId);
-    expect(prisma.serviceRequest.create).toHaveBeenCalledWith(
+    expect(prisma.ticket.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
-          customerId: "cust-1",
+          source: "CUSTOMER",
+          entityType: "Customer",
+          entityId: "cust-1",
+          organizationId: "org-1",
           createdByUserId: actorId,
           updatedByUserId: actorId,
         }),
+      }),
+    );
+  });
+});
+
+describe("CustomersService.listAllRequests", () => {
+  it("is tenant scoped", async () => {
+    vi.mocked(prisma.ticket.findMany).mockResolvedValue([] as never);
+    await service.listAllRequests(orgIds);
+    expect(prisma.ticket.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ organizationId: { in: orgIds }, deletedAt: null }),
       }),
     );
   });
