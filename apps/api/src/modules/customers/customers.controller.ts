@@ -109,7 +109,7 @@ export class CustomersController {
   async createRequest(req: Request, res: Response, next: NextFunction) {
     try {
       const input = createRequestSchema.parse(req.body);
-      const request = await service.createRequest(req.customerId!, input);
+      const request = await service.createRequest(req.customerId!, input, req.auth!.id);
       res.status(201).json({ data: request });
     } catch (err) {
       next(err);

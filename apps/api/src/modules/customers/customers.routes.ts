@@ -23,12 +23,12 @@ self.post("/requests", controller.createRequest);
 
 router.use("/me", self);
 
-router.get("/requests", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.listAllRequests);
-router.patch("/requests/:id", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.updateRequest);
+router.get("/requests", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER", "SUPPORT_AGENT"), controller.listAllRequests);
+router.patch("/requests/:id", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER", "SUPPORT_AGENT"), controller.updateRequest);
 
 // Admin / reseller CRUD
-router.get("/", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.list);
-router.get("/:id", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.get);
+router.get("/", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER", "SUPPORT_AGENT"), controller.list);
+router.get("/:id", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER", "SUPPORT_AGENT"), controller.get);
 router.post("/", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.create);
 router.patch("/:id", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.update);
 

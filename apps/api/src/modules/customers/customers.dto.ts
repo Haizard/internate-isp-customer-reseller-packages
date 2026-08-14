@@ -33,7 +33,7 @@ export const createRequestSchema = z.object({
 });
 
 export const updateRequestSchema = z.object({
-  status: z.enum(["OPEN", "IN_PROGRESS", "CLOSED"]),
+  status: z.enum(["OPEN", "IN_PROGRESS", "PENDING_CUSTOMER", "RESOLVED", "CLOSED"]),
 });
 
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;

@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../../prisma/client";
 import { AppError } from "../../middleware/errorHandler";
+import { slaFor } from "../tickets/sla";
+import type { TicketStatus } from "@prisma/client";
 import type {
   CreateCustomerInput,
   CreateRequestInput,
@@ -219,38 +221,75 @@ export class CustomersService {
     });
   }
 
-  async createRequest(customerId: string, input: CreateRequestInput, actorUserId: string | null = null) {
-    return prisma.serviceRequest.create({
+  async createRequest(customerId: string, input: CreateRequestInput, actorUserId: string) {
+    const customer = await prisma.customer.findUnique({ where: { id: customerId } });
+    if (!customer) throw new AppError(404, "Customer not found");
+    const ticket = await prisma.ticket.create({
       data: {
-        type: input.type,
-        message: input.message ?? null,
-        customerId,
+        subject: input.type === "UPGRADE" ? "Package upgrade request" : "Support request",
+        description: input.message ?? null,
+        source: "CUSTOMER",
+        entityType: "Customer",
+        entityId: customer.id,
+        organizationId: customer.organizationId,
+        requesterId: actorUserId,
+        priority: "MEDIUM",
+        ...slaFor("MEDIUM"),
         createdByUserId: actorUserId,
         updatedByUserId: actorUserId,
       },
     });
+    await prisma.auditLog.create({
+      data: {
+        actorUserId,
+        action: "CREATE",
+        entityType: "Ticket",
+        entityId: ticket.id,
+        afterJson: { subject: ticket.subject, source: "CUSTOMER" },
+      },
+    });
+    return ticket;
   }
 
   async listRequests(customerId: string) {
-    return prisma.serviceRequest.findMany({
-      where: { customerId },
+    return prisma.ticket.findMany({
+      where: { entityType: "Customer", entityId: customerId, deletedAt: null },
+      include: { comments: { orderBy: { createdAt: "asc" } } },
       orderBy: { createdAt: "desc" },
     });
   }
 
   async listAllRequests(orgIds: string[]) {
-    return prisma.serviceRequest.findMany({
-      where: { customer: { organizationId: { in: orgIds } } },
-      include: { customer: { select: { id: true, name: true, phone: true, organizationId: true } } },
+    return prisma.ticket.findMany({
+      where: { organizationId: { in: orgIds }, deletedAt: null },
+      include: {
+        assignee: { select: { id: true, name: true } },
+        requester: { select: { id: true, name: true } },
+        comments: { orderBy: { createdAt: "asc" } },
+      },
       orderBy: { createdAt: "desc" },
     });
   }
 
-  async updateRequest(id: string, status: "OPEN" | "IN_PROGRESS" | "CLOSED", orgIds: string[], actorUserId: string) {
-    const request = await prisma.serviceRequest.findFirst({ where: { id, customer: { organizationId: { in: orgIds } } } });
+  async updateRequest(id: string, status: TicketStatus, orgIds: string[], actorUserId: string) {
+    const request = await prisma.ticket.findFirst({
+      where: { id, organizationId: { in: orgIds }, deletedAt: null },
+    });
     if (!request) throw new AppError(404, "Service request not found");
-    const updated = await prisma.serviceRequest.update({ where: { id }, data: { status, updatedByUserId: actorUserId } });
-    await prisma.auditLog.create({ data: { actorUserId, action: "UPDATE", entityType: "ServiceRequest", entityId: id, beforeJson: { status: request.status }, afterJson: { status } } });
+    const updated = await prisma.ticket.update({
+      where: { id },
+      data: { status, updatedByUserId: actorUserId },
+    });
+    await prisma.auditLog.create({
+      data: {
+        actorUserId,
+        action: "UPDATE",
+        entityType: "Ticket",
+        entityId: id,
+        beforeJson: { status: request.status },
+        afterJson: { status },
+      },
+    });
     return updated;
   }
 
