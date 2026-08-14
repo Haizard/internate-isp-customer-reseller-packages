@@ -46,6 +46,19 @@ async function main() {
     },
   });
 
+  // Support agent (ISP-level support team)
+  await prisma.user.upsert({
+    where: { email: "support@nexusnet.co.tz" },
+    update: {},
+    create: {
+      name: "Elena Support",
+      email: "support@nexusnet.co.tz",
+      passwordHash,
+      role: "SUPPORT_AGENT",
+      organizationId: isp.id,
+    },
+  });
+
   // 1 Reseller org (child of ISP)
   const reseller = await prisma.organization.upsert({
     where: { id: "00000000-0000-4000-8000-000000000002" },
@@ -243,11 +256,85 @@ async function main() {
     });
   }
 
+  // Demo support tickets
+  const supportUser = await prisma.user.findUnique({ where: { email: "support@nexusnet.co.tz" } });
+  const john = await prisma.customer.findUnique({ where: { id: "00000000-0000-4000-8000-000000000010" } });
+  const neema = await prisma.customer.findUnique({ where: { id: "00000000-0000-4000-8000-000000000011" } });
+  const baraka = await prisma.customer.findUnique({ where: { id: "00000000-0000-4000-8000-000000000012" } });
+  if (john && neema && baraka) {
+    const demoCustomers = [john, neema, baraka];
+    const now = new Date();
+    await prisma.ticket.upsert({
+      where: { id: "00000000-0000-4000-8000-000000000030" },
+      update: {},
+      create: {
+        id: "00000000-0000-4000-8000-000000000030",
+        subject: "No internet since this morning",
+        description: "John reports total outage on his Home Basic plan.",
+        status: "OPEN",
+        priority: "URGENT",
+        source: "CUSTOMER",
+        entityType: "Customer",
+        entityId: john.id,
+        organizationId: john.organizationId,
+        requesterId: supportUser?.id ?? null,
+        slaRespondBy: new Date(now.getTime() - 30 * 60 * 1000),
+        slaResolveBy: new Date(now.getTime() - 60 * 60 * 1000),
+        createdAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
+      },
+    });
+    await prisma.ticket.upsert({
+      where: { id: "00000000-0000-4000-8000-000000000031" },
+      update: {},
+      create: {
+        id: "00000000-0000-4000-8000-000000000031",
+        subject: "WiFi keeps disconnecting",
+        description: "Neema's devices drop off the network every few minutes.",
+        status: "IN_PROGRESS",
+        priority: "HIGH",
+        source: "CUSTOMER",
+        entityType: "Customer",
+        entityId: neema.id,
+        organizationId: neema.organizationId,
+        assigneeId: supportUser?.id ?? null,
+        requesterId: supportUser?.id ?? null,
+        firstResponseAt: new Date(now.getTime() - 50 * 60 * 1000),
+        slaRespondBy: new Date(now.getTime() + 2 * 60 * 60 * 1000),
+        slaResolveBy: new Date(now.getTime() + 20 * 60 * 60 * 1000),
+        createdAt: new Date(now.getTime() - 3 * 60 * 60 * 1000),
+      },
+    });
+    await prisma.ticket.upsert({
+      where: { id: "00000000-0000-4000-8000-000000000032" },
+      update: {},
+      create: {
+        id: "00000000-0000-4000-8000-000000000032",
+        subject: "Speeds slower than advertised",
+        description: "Baraka measured below expected throughput during peak hours.",
+        status: "RESOLVED",
+        priority: "MEDIUM",
+        source: "CUSTOMER",
+        entityType: "Customer",
+        entityId: baraka.id,
+        organizationId: baraka.organizationId,
+        assigneeId: supportUser?.id ?? null,
+        requesterId: supportUser?.id ?? null,
+        firstResponseAt: new Date(now.getTime() - 26 * 60 * 60 * 1000),
+        resolvedAt: new Date(now.getTime() - 4 * 60 * 60 * 1000),
+        slaRespondBy: new Date(now.getTime() - 20 * 60 * 60 * 1000),
+        slaResolveBy: new Date(now.getTime() - 10 * 60 * 60 * 1000),
+        createdAt: new Date(now.getTime() - 30 * 60 * 60 * 1000),
+      },
+    });
+    void demoCustomers;
+  }
+
   console.log("Seed complete.");
   console.log("Demo logins (password: password123):");
   console.log("  ISP Admin:  admin@nexusnet.co.tz");
   console.log("  Reseller:   reseller@amina.co.tz");
   console.log("  Customer:   john.mushi@customer.co.tz");
+  console.log("  Support Agent: support@nexusnet.co.tz");
 }
 
 main()
