@@ -10,7 +10,7 @@ const controller = new RoutersController();
 router.use(authGuard, tenantGuard);
 
 router.get("/", controller.list);
-router.post("/", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.create);
+router.post("/", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER", "SUPPORT_AGENT"), controller.create);
 router.patch("/:id", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.update);
 
 export default router;

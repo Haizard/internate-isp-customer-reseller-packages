@@ -10,7 +10,7 @@ const controller = new VouchersController();
 router.use(authGuard, tenantGuard);
 
 router.get("/", controller.list);
-router.post("/batch", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.createBatch);
+router.post("/batch", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER", "SUPPORT_AGENT"), controller.createBatch);
 router.patch("/:id/status", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.updateStatus);
 
 export default router;

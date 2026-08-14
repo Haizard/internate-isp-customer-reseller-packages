@@ -11,7 +11,7 @@ router.use(authGuard, tenantGuard);
 
 router.get("/", controller.list);
 router.get("/popularity", roleGuard("PLATFORM_OWNER", "ISP_ADMIN"), controller.popularity);
-router.post("/", roleGuard("PLATFORM_OWNER", "ISP_ADMIN"), controller.create);
+router.post("/", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "SUPPORT_AGENT"), controller.create);
 router.patch("/:id", roleGuard("PLATFORM_OWNER", "ISP_ADMIN"), controller.update);
 router.get("/:id/rules", controller.listRules);
 router.post("/:id/rules", roleGuard("PLATFORM_OWNER", "ISP_ADMIN"), controller.createRule);
