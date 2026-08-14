@@ -3,6 +3,7 @@ import { CustomersService } from "./customers.service";
 import {
   createCustomerSchema,
   createRequestSchema,
+  addRequestCommentSchema,
   redeemVoucherSchema,
   updateCustomerSchema,
   updateWifiSchema,
@@ -120,6 +121,30 @@ export class CustomersController {
     try {
       const requests = await service.listRequests(req.customerId!);
       res.json({ data: requests });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getRequest(req: Request, res: Response, next: NextFunction) {
+    try {
+      const ticket = await service.getRequest(req.params.id, req.customerId!);
+      res.json({ data: ticket });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async addRequestComment(req: Request, res: Response, next: NextFunction) {
+    try {
+      const input = addRequestCommentSchema.parse(req.body);
+      const comment = await service.addRequestComment(
+        req.params.id,
+        req.customerId!,
+        input,
+        req.auth!.id,
+      );
+      res.status(201).json({ data: comment });
     } catch (err) {
       next(err);
     }

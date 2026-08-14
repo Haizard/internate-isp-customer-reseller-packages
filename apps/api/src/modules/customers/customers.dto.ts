@@ -28,8 +28,15 @@ export const redeemVoucherSchema = z.object({
 });
 
 export const createRequestSchema = z.object({
-  type: z.enum(["UPGRADE", "SUPPORT"]),
+  type: z.enum(["UPGRADE", "SUPPORT", "OTHER"]),
+  subject: z.string().min(1).optional(),
+  description: z.string().optional(),
   message: z.string().optional(),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
+});
+
+export const addRequestCommentSchema = z.object({
+  body: z.string().min(1),
 });
 
 export const updateRequestSchema = z.object({

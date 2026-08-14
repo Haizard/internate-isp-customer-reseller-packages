@@ -11,7 +11,9 @@ vi.mock("../../../prisma/client", () => ({
     device: { findMany: vi.fn() },
     usageRecord: { findMany: vi.fn() },
     serviceRequest: { create: vi.fn(), findMany: vi.fn() },
-    ticket: { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
+    ticket: { create: vi.fn(), findMany: vi.fn(), findFirst: vi.fn(), findUnique: vi.fn(), update: vi.fn() },
+    ticketComment: { create: vi.fn() },
+    notification: { create: vi.fn(), findMany: vi.fn(), count: vi.fn(), updateMany: vi.fn() },
     organization: { findUnique: vi.fn() },
     auditLog: { create: vi.fn() },
     $transaction: vi.fn(),
@@ -135,6 +137,105 @@ describe("CustomersService.list", () => {
     expect(prisma.customer.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { organizationId: { in: orgIds }, deletedAt: null },
+      }),
+    );
+  });
+});
+
+describe("CustomersService.listRequests", () => {
+  it("filters out internal comments so customers can't read agent-only notes", async () => {
+    vi.mocked(prisma.ticket.findMany).mockResolvedValue([] as never);
+    await service.listRequests("cust-1");
+    expect(prisma.ticket.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          entityType: "Customer",
+          entityId: "cust-1",
+          deletedAt: null,
+        }),
+        include: expect.objectContaining({
+          comments: expect.objectContaining({
+            where: { isInternal: false },
+            orderBy: { createdAt: "asc" },
+          }),
+        }),
+      }),
+    );
+  });
+});
+
+describe("CustomersService.getRequest", () => {
+  it("filters out internal comments on a single ticket lookup", async () => {
+    vi.mocked(prisma.ticket.findFirst).mockResolvedValue({
+      id: "t-1",
+      comments: [],
+    } as never);
+    await service.getRequest("t-1", "cust-1");
+    expect(prisma.ticket.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          id: "t-1",
+          entityType: "Customer",
+          entityId: "cust-1",
+          deletedAt: null,
+        }),
+        include: expect.objectContaining({
+          comments: expect.objectContaining({
+            where: { isInternal: false },
+            orderBy: { createdAt: "asc" },
+          }),
+        }),
+      }),
+    );
+  });
+});
+
+describe("CustomersService.addRequestComment", () => {
+  it("never stores an internal note when a customer replies (privacy guard)", async () => {
+    vi.mocked(prisma.ticket.findFirst).mockResolvedValue({
+      id: "t-1",
+      status: "IN_PROGRESS",
+    } as never);
+    vi.mocked(prisma.ticketComment.create).mockResolvedValue({ id: "c-1" } as never);
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as never);
+
+    await service.addRequestComment(
+      "t-1",
+      "cust-1",
+      { body: "still no internet" },
+      actorId,
+    );
+
+    expect(prisma.ticketComment.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          authorRole: "CUSTOMER",
+          isInternal: false,
+        }),
+      }),
+    );
+  });
+
+  it("moves a ticket out of PENDING_CUSTOMER when the customer replies", async () => {
+    vi.mocked(prisma.ticket.findFirst).mockResolvedValue({
+      id: "t-1",
+      status: "PENDING_CUSTOMER",
+    } as never);
+    vi.mocked(prisma.ticketComment.create).mockResolvedValue({ id: "c-1" } as never);
+    vi.mocked(prisma.ticket.update).mockResolvedValue({ id: "t-1", status: "IN_PROGRESS" } as never);
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as never);
+
+    await service.addRequestComment(
+      "t-1",
+      "cust-1",
+      { body: "thanks, my router rebooted" },
+      actorId,
+    );
+
+    expect(prisma.ticket.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: "t-1" },
+        data: expect.objectContaining({ status: "IN_PROGRESS" }),
       }),
     );
   });

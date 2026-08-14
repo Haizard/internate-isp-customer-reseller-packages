@@ -10,9 +10,10 @@ interface SidebarProps {
   accent: string;
   userName: string;
   userRole: string;
+  headerActions?: React.ReactNode;
 }
 
-export function Sidebar({ brand, items, accent, userName, userRole }: SidebarProps) {
+export function Sidebar({ brand, items, accent, userName, userRole, headerActions }: SidebarProps) {
   return (
     <aside className="hidden lg:flex fixed inset-y-0 left-0 w-[260px] glass flex-col z-30">
       <div className="px-6 h-16 flex items-center gap-2.5">
@@ -22,7 +23,8 @@ export function Sidebar({ brand, items, accent, userName, userRole }: SidebarPro
         >
           <Icon name="router" size={18} />
         </div>
-        <span className="text-title-2 font-bold text-text-primary">{brand}</span>
+        <span className="text-title-2 font-bold text-text-primary flex-1 truncate">{brand}</span>
+        {headerActions}
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto no-scrollbar">

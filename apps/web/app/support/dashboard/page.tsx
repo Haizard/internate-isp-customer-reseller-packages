@@ -9,6 +9,7 @@ import { ListRow } from "@/components/ui/ListRow";
 import { StatusBadge } from "@/components/ui/Badge";
 import { LoadingState, ErrorState, EmptyState } from "@/components/ui/States";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface PriorityRow {
   priority: string;
@@ -32,6 +33,7 @@ interface Ticket {
 }
 
 export default function SupportDashboard() {
+  const router = useRouter();
   const stats = useApi<DashboardStats>("/tickets/dashboard");
   const tickets = useApi<Ticket[]>("/tickets");
 
@@ -94,7 +96,7 @@ export default function SupportDashboard() {
                   </div>
                 }
                 trailing={<StatusBadge status={t.status} />}
-                onClick={() => window.location.assign(`/support/tickets?id=${t.id}`)}
+                onClick={() => router.push(`/support/tickets?id=${t.id}`)}
               />
             </div>
           ))

@@ -20,6 +20,8 @@ self.get("/usage", controller.usage);
 self.post("/vouchers/redeem", controller.redeemVoucher);
 self.get("/requests", controller.listRequests);
 self.post("/requests", controller.createRequest);
+self.get("/requests/:id", controller.getRequest);
+self.post("/requests/:id/comments", controller.addRequestComment);
 
 router.use("/me", self);
 

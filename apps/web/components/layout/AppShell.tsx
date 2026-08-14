@@ -13,10 +13,11 @@ interface AppShellProps {
   accent: string;
   brand?: string;
   allowedRoles: string[];
+  headerActions?: ReactNode;
   children: ReactNode;
 }
 
-export function AppShell({ items, accent, brand = "NetMaster", allowedRoles, children }: AppShellProps) {
+export function AppShell({ items, accent, brand = "NetMaster", allowedRoles, headerActions, children }: AppShellProps) {
   const router = useRouter();
   const user = getStoredUser();
 
@@ -34,8 +35,8 @@ export function AppShell({ items, accent, brand = "NetMaster", allowedRoles, chi
 
   return (
     <div className="min-h-screen">
-      <Sidebar brand={brand} items={items} accent={accent} userName={user.name} userRole={roleLabel} />
-      <MobileTopBar brand={brand} accent={accent} userName={user.name} />
+      <Sidebar brand={brand} items={items} accent={accent} userName={user.name} userRole={roleLabel} headerActions={headerActions} />
+      <MobileTopBar brand={brand} accent={accent} userName={user.name} headerActions={headerActions} />
       <main className="lg:ml-[260px] px-4 md:px-8 py-6 md:py-8 pb-24 lg:pb-8 max-w-6xl">
         {children}
       </main>

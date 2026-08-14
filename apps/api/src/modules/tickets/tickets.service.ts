@@ -163,6 +163,24 @@ export class TicketsService {
         data: { firstResponseAt: new Date(), updatedByUserId: actorId },
       });
     }
+    // Notify the customer about a non-internal agent reply on a customer-owned ticket.
+    if (
+      actorRole !== "CUSTOMER" &&
+      !input.isInternal &&
+      ticket.entityType === "Customer" &&
+      ticket.entityId
+    ) {
+      await prisma.notification.create({
+        data: {
+          customerId: ticket.entityId,
+          ticketId: ticket.id,
+          kind: "TICKET_REPLY",
+          title: `New reply on "${ticket.subject}"`,
+          body: input.body.length > 240 ? `${input.body.slice(0, 240)}…` : input.body,
+          createdByUserId: actorId,
+        },
+      });
+    }
     await prisma.auditLog.create({
       data: {
         actorUserId: actorId,

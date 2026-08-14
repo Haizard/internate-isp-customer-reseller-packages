@@ -224,17 +224,21 @@ export class CustomersService {
   async createRequest(customerId: string, input: CreateRequestInput, actorUserId: string) {
     const customer = await prisma.customer.findUnique({ where: { id: customerId } });
     if (!customer) throw new AppError(404, "Customer not found");
+    const priority = input.priority ?? "MEDIUM";
+    const subject = input.subject?.trim() ||
+      (input.type === "UPGRADE" ? "Package upgrade request" : "Support request");
+    const description = input.description?.trim() ?? input.message ?? null;
     const ticket = await prisma.ticket.create({
       data: {
-        subject: input.type === "UPGRADE" ? "Package upgrade request" : "Support request",
-        description: input.message ?? null,
+        subject,
+        description,
         source: "CUSTOMER",
         entityType: "Customer",
         entityId: customer.id,
         organizationId: customer.organizationId,
         requesterId: actorUserId,
-        priority: "MEDIUM",
-        ...slaFor("MEDIUM"),
+        priority,
+        ...slaFor(priority),
         createdByUserId: actorUserId,
         updatedByUserId: actorUserId,
       },
@@ -245,7 +249,7 @@ export class CustomersService {
         action: "CREATE",
         entityType: "Ticket",
         entityId: ticket.id,
-        afterJson: { subject: ticket.subject, source: "CUSTOMER" },
+        afterJson: { subject: ticket.subject, source: "CUSTOMER", priority: ticket.priority },
       },
     });
     return ticket;
@@ -254,9 +258,78 @@ export class CustomersService {
   async listRequests(customerId: string) {
     return prisma.ticket.findMany({
       where: { entityType: "Customer", entityId: customerId, deletedAt: null },
-      include: { comments: { orderBy: { createdAt: "asc" } } },
+      include: {
+        comments: {
+          where: { isInternal: false },
+          orderBy: { createdAt: "asc" },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
+  }
+
+  async getRequest(ticketId: string, customerId: string) {
+    const ticket = await prisma.ticket.findFirst({
+      where: {
+        id: ticketId,
+        entityType: "Customer",
+        entityId: customerId,
+        deletedAt: null,
+      },
+      include: {
+        comments: {
+          where: { isInternal: false },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+    });
+    if (!ticket) throw new AppError(404, "Request not found");
+    return ticket;
+  }
+
+  async addRequestComment(
+    ticketId: string,
+    customerId: string,
+    input: { body: string },
+    actorUserId: string,
+  ) {
+    const ticket = await prisma.ticket.findFirst({
+      where: {
+        id: ticketId,
+        entityType: "Customer",
+        entityId: customerId,
+        deletedAt: null,
+      },
+    });
+    if (!ticket) throw new AppError(404, "Request not found");
+    const comment = await prisma.ticketComment.create({
+      data: {
+        ticketId,
+        authorId: actorUserId,
+        authorRole: "CUSTOMER",
+        body: input.body,
+        // Customer replies are never internal — force false to avoid accidental leakage.
+        isInternal: false,
+      },
+    });
+    // If the agent is waiting on the customer, the customer replying should move
+    // the ticket back to IN_PROGRESS so it doesn't sit in PENDING_CUSTOMER forever.
+    if (ticket.status === "PENDING_CUSTOMER") {
+      await prisma.ticket.update({
+        where: { id: ticketId },
+        data: { status: "IN_PROGRESS", updatedByUserId: actorUserId },
+      });
+    }
+    await prisma.auditLog.create({
+      data: {
+        actorUserId,
+        action: "COMMENT",
+        entityType: "Ticket",
+        entityId: ticketId,
+        afterJson: { commentId: comment.id, from: "CUSTOMER" },
+      },
+    });
+    return comment;
   }
 
   async listAllRequests(orgIds: string[]) {

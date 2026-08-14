@@ -37,7 +37,17 @@ export function MobileTabBar({ items, accent }: { items: { href: string; label: 
   );
 }
 
-export function MobileTopBar({ brand, accent, userName }: { brand: string; accent: string; userName: string }) {
+export function MobileTopBar({
+  brand,
+  accent,
+  userName,
+  headerActions,
+}: {
+  brand: string;
+  accent: string;
+  userName: string;
+  headerActions?: React.ReactNode;
+}) {
   return (
     <header className="lg:hidden sticky top-0 z-20 glass-strong px-4 h-16 flex items-center justify-between">
       <div className="flex items-center gap-2">
@@ -49,9 +59,12 @@ export function MobileTopBar({ brand, accent, userName }: { brand: string; accen
         </div>
         <span className="text-title-2 font-bold">{brand}</span>
       </div>
-      <button onClick={logout} className="text-text-tertiary hover:text-accent-red transition-colors" aria-label="Log out">
-        <Icon name="logOut" size={20} />
-      </button>
+      <div className="flex items-center gap-1">
+        {headerActions}
+        <button onClick={logout} className="text-text-tertiary hover:text-accent-red transition-colors" aria-label="Log out">
+          <Icon name="logOut" size={20} />
+        </button>
+      </div>
     </header>
   );
 }
