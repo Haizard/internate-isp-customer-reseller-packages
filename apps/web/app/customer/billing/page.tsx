@@ -21,17 +21,18 @@ interface Customer {
   status: string;
 }
 
-interface ServiceRequest {
+interface TicketView {
   id: string;
-  type: string;
+  subject: string;
   status: string;
-  message: string | null;
+  priority: string;
   createdAt: string;
+  comments?: { body: string; authorRole: string; isInternal: boolean; createdAt: string }[];
 }
 
 export default function BillingPage() {
   const { data, loading, error, reload } = useApi<Customer>("/customers/me");
-  const requests = useApi<ServiceRequest[]>("/customers/me/requests");
+  const requests = useApi<TicketView[]>("/customers/me/requests");
   const [sent, setSent] = useState(false);
 
   if (loading || requests.loading) return <LoadingState />;
@@ -82,11 +83,11 @@ export default function BillingPage() {
           (requests.data ?? []).map((r, i) => (
             <div key={r.id} className={i > 0 ? "hairline" : ""}>
               <ListRow
-                title={`${r.type.toLowerCase()} request`}
-                subtitle={`${r.message ?? ""} · ${formatDate(r.createdAt)}`}
+                title={r.subject}
+                subtitle={`${r.priority.toLowerCase()} · ${formatDate(r.createdAt)} · ${r.comments?.filter((c) => !c.isInternal).length ?? 0} replies`}
                 leading={
                   <div className="w-9 h-9 rounded-full bg-[rgba(255,159,10,0.15)] text-accent-orange flex items-center justify-center">
-                    <Icon name="credit" size={18} />
+                    <Icon name="ticket" size={18} />
                   </div>
                 }
                 trailing={<StatusBadge status={r.status} />}
