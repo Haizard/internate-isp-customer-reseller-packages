@@ -6,7 +6,7 @@ export interface SessionUser {
   id: string;
   name: string;
   email: string;
-  role: "PLATFORM_OWNER" | "ISP_ADMIN" | "RESELLER" | "CUSTOMER";
+  role: "PLATFORM_OWNER" | "ISP_ADMIN" | "RESELLER" | "CUSTOMER" | "SUPPORT_AGENT";
   organizationId: string;
   customerId: string | null;
 }
@@ -62,6 +62,8 @@ export function dashboardPathFor(role: string): string {
       return "/reseller/dashboard";
     case "CUSTOMER":
       return "/customer/dashboard";
+    case "SUPPORT_AGENT":
+      return "/support/dashboard";
     default:
       return "/login";
   }
