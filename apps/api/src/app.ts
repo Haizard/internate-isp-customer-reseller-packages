@@ -11,6 +11,7 @@ import voucherRoutes from "./modules/vouchers/vouchers.routes";
 import reportRoutes from "./modules/reports/reports.routes";
 import routerAdapterRoutes from "./modules/routerAdapters/routerAdapters.routes";
 import hotspotRoutes from "./modules/hotspot/hotspot.routes";
+import ticketRoutes from "./modules/tickets/tickets.routes";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
 import { config } from "./config";
 
@@ -34,6 +35,7 @@ app.use("/api/v1/vouchers", voucherRoutes);
 app.use("/api/v1/reports", reportRoutes);
 app.use("/api/v1/router-adapters", routerAdapterRoutes);
 app.use("/api/v1/hotspot", hotspotRoutes);
+app.use("/api/v1/tickets", ticketRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
