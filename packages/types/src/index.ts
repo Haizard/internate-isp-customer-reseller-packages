@@ -1,6 +1,6 @@
 export type OrganizationType = "ISP" | "RESELLER";
 
-export type UserRole = "PLATFORM_OWNER" | "ISP_ADMIN" | "RESELLER" | "CUSTOMER";
+export type UserRole = "PLATFORM_OWNER" | "ISP_ADMIN" | "RESELLER" | "CUSTOMER" | "SUPPORT_AGENT";
 
 export type RouterStatus = "ACTIVE" | "OFFLINE" | "SUSPENDED";
 
@@ -124,6 +124,44 @@ export interface AuditLog {
 export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
+}
+
+export type TicketStatus = "OPEN" | "IN_PROGRESS" | "PENDING_CUSTOMER" | "RESOLVED" | "CLOSED";
+export type TicketPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+export type TicketSource = "CUSTOMER" | "RESELLER" | "SUPPORT" | "SYSTEM";
+
+export interface TicketComment {
+  id: string;
+  ticketId: string;
+  authorId: string | null;
+  authorRole: string;
+  body: string;
+  isInternal: boolean;
+  createdAt: string;
+}
+
+export interface Ticket {
+  id: string;
+  subject: string;
+  description: string | null;
+  status: TicketStatus;
+  priority: TicketPriority;
+  source: TicketSource;
+  entityType: string | null;
+  entityId: string | null;
+  organizationId: string;
+  assigneeId: string | null;
+  assignee?: Pick<User, "id" | "name"> | null;
+  requesterId: string | null;
+  requester?: Pick<User, "id" | "name"> | null;
+  slaRespondBy: string | null;
+  slaResolveBy: string | null;
+  firstResponseAt: string | null;
+  resolvedAt: string | null;
+  closedAt: string | null;
+  comments?: TicketComment[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Paginated<T> {
