@@ -25,6 +25,8 @@ router.get("/:routerId/status", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELL
 router.get("/:routerId/sessions", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getSessions);
 router.get("/:routerId/usage", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getUsage);
 router.get("/:routerId/health", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getHealth);
+router.get("/:routerId/capabilities", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getCapabilities);
+router.get("/:routerId/session-snapshot", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getSessionSnapshot);
 router.get("/:routerId/commands", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getCommands);
 router.post("/:routerId/commands/:commandId/retry", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.retryCommand);
 router.get("/:routerId/lifecycle", roleGuard("PLATFORM_OWNER", "ISP_ADMIN", "RESELLER"), controller.getLifecycleState);

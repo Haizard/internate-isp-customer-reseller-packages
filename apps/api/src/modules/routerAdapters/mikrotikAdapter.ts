@@ -218,6 +218,47 @@ export class MikroTikAdapter implements RouterAdapter {
     }
 
     try {
+      if (query.kind === "capabilities") {
+        return {
+          routerId: query.routerId,
+          kind: "capabilities",
+          status: "OK",
+          data: {
+            platform: "mikrotik",
+            model: "RouterOS gateway",
+            firmware: null,
+            release: null,
+            architecture: null,
+            uptimeSeconds: 0,
+            features: {
+              chilli: false,
+              hostapd: false,
+              tc: false,
+              ubus: false,
+              qos: false,
+              dnsmasq: false,
+            },
+            supportedCommands: {
+              apply_profile: true,
+              create_user: true,
+              create_voucher: true,
+              disconnect_user: true,
+              create_queue: true,
+              create_pool: false,
+              create_pppoe_profile: true,
+              create_hotspot_profile: true,
+              heartbeat: true,
+            },
+            supportedQueries: {
+              sessions: true,
+              usage: false,
+              health: false,
+              capabilities: true,
+            },
+          },
+        };
+      }
+
       if (query.kind === "sessions") {
         const sessions = await this.apiMenu.menu("/ip/hotspot/active").getAll();
         return {

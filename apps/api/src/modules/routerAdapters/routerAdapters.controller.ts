@@ -172,6 +172,15 @@ export class RouterAdaptersController {
     }
   }
 
+  async getCapabilities(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await service.getCapabilities(req.params.routerId, req.auth!.organizationId);
+      res.status(200).json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async getCommands(req: Request, res: Response, next: NextFunction) {
     try {
       const result = await service.getCommands(req.params.routerId, req.auth!.organizationId);

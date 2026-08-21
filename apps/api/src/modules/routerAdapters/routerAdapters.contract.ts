@@ -22,7 +22,7 @@ export interface AdapterCommandEnvelope {
   updatedAt: string;
 }
 
-export type AdapterQueryKind = "sessions" | "usage" | "health";
+export type AdapterQueryKind = "sessions" | "usage" | "health" | "capabilities";
 
 export interface AdapterQueryEnvelope {
   routerId: string;

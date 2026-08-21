@@ -279,6 +279,49 @@ describe("OpenWrtAdapter.query", () => {
     expect(result.data.diskPercent).toBe(15);
   });
 
+  it("detects gateway capabilities and supported commands", async () => {
+    const { shell, commands } = fakeShell({
+      [capabilitiesScript()]: {
+        code: 0,
+        stdout: [
+          "chilli=yes",
+          "hostapd=no",
+          "tc=yes",
+          "ubus=yes",
+          "qos=yes",
+          "dnsmasq=yes",
+          'DISTRIB_ID="OpenWrt"',
+          'DISTRIB_RELEASE="23.05.3"',
+          'DISTRIB_DESCRIPTION="OpenWrt 23.05.3 r23809-234f1a2efa"',
+          "model name: MediaTek MT7621AT",
+          "mips",
+          "uptime=2592000",
+        ].join("\n"),
+        stderr: "",
+      },
+    });
+
+    const result = await adapter(shell).query({ routerId: "router-1", kind: "capabilities" });
+
+    expect(result.status).toBe("OK");
+    const data = result.data as {
+      platform: string;
+      firmware: string;
+      features: Record<string, boolean>;
+      supportedCommands: Record<string, boolean>;
+      supportedQueries: Record<string, boolean>;
+    };
+    expect(data.platform).toBe("openwrt");
+    expect(data.firmware).toContain("23.05.3");
+    expect(data.features.chilli).toBe(true);
+    expect(data.features.hostapd).toBe(false);
+    expect(data.supportedCommands.create_user).toBe(true);
+    expect(data.supportedCommands.create_hotspot_profile).toBe(true);
+    expect(data.supportedCommands.create_queue).toBe(true);
+    expect(data.supportedQueries.sessions).toBe(true);
+    expect(commands.some((c) => c.includes("check chilli_query chilli"))).toBe(true);
+  });
+
   it("returns a failed query when the shell cannot connect", async () => {
     const shell: Shell = {
       async connect() {
@@ -296,3 +339,19 @@ describe("OpenWrtAdapter.query", () => {
     expect(result.message).toContain("no route");
   });
 });
+
+function capabilitiesScript(): string {
+  return [
+    "check() { if command -v \"$1\" >/dev/null 2>&1; then echo \"$2=yes\"; else echo \"$2=no\"; fi; }",
+    "check chilli_query chilli",
+    "check hostapd hostapd",
+    "check tc tc",
+    "check ubus ubus",
+    "if [ -e /etc/init.d/qos ]; then echo qos=yes; else echo qos=no; fi",
+    "if [ -e /etc/init.d/dnsmasq ]; then echo dnsmasq=yes; else echo dnsmasq=no; fi",
+    "if [ -e /etc/openwrt_release ]; then cat /etc/openwrt_release; fi",
+    "cat /proc/cpuinfo 2>/dev/null | grep -m1 'model name' || true",
+    "uname -m 2>/dev/null || true",
+    "cat /proc/uptime 2>/dev/null | awk '{print \"uptime=\" int($1)}'",
+  ].join("; ");
+}

@@ -90,7 +90,7 @@ export default function Mvp2Page() {
     <div className="space-y-6">
       <PageHeader
         title="MVP 2 gateway lifecycle"
-        subtitle="Commands, desired-vs-applied reconciliation, sessions, health, and usage for each simulator-backed gateway."
+        subtitle="Commands, desired-vs-applied reconciliation, sessions, health, and usage for each enrolled gateway."
       />
 
       {routers.length > 0 && (

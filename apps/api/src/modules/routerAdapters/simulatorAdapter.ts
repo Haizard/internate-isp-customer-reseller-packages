@@ -138,6 +138,47 @@ export class SimulatorAdapter implements RouterAdapter {
       };
     }
 
+    if (query.kind === "capabilities") {
+      return {
+        routerId: query.routerId,
+        kind: "capabilities",
+        status: "OK",
+        data: {
+          platform: "simulator",
+          model: "NetMaster Simulator Gateway",
+          firmware: "simulated",
+          release: null,
+          architecture: null,
+          uptimeSeconds: 2592000,
+          features: {
+            chilli: true,
+            hostapd: true,
+            tc: true,
+            ubus: true,
+            qos: true,
+            dnsmasq: true,
+          },
+          supportedCommands: {
+            apply_profile: true,
+            create_user: true,
+            create_voucher: true,
+            disconnect_user: true,
+            create_queue: true,
+            create_pool: true,
+            create_pppoe_profile: true,
+            create_hotspot_profile: true,
+            heartbeat: true,
+          },
+          supportedQueries: {
+            sessions: true,
+            usage: true,
+            health: true,
+            capabilities: true,
+          },
+        },
+      };
+    }
+
     if (query.kind === "sessions") {
       const clients = SAMPLE_CLIENTS.map((client, index) =>
         this.config.simulateExpiry && index === 0 ? { ...client, expired: true } : client,

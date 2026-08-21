@@ -176,6 +176,7 @@ export class OpenWrtAdapter implements RouterAdapter {
     try {
       if (query.kind === "sessions") return this.querySessions(query.routerId);
       if (query.kind === "usage") return this.queryUsage(query.routerId);
+      if (query.kind === "capabilities") return this.queryCapabilities(query.routerId);
       return this.queryHealth(query.routerId);
     } catch (error) {
       return {
@@ -540,6 +541,87 @@ export class OpenWrtAdapter implements RouterAdapter {
         memoryPercent: parseMemPercent(memRes.stdout),
         diskPercent: parseDiskPercent(diskRes.stdout),
         lastHeartbeatAt: new Date().toISOString(),
+      },
+    };
+  }
+
+  private async queryCapabilities(routerId: string): Promise<AdapterQueryResult> {
+    const script = [
+      "check() { if command -v \"$1\" >/dev/null 2>&1; then echo \"$2=yes\"; else echo \"$2=no\"; fi; }",
+      "check chilli_query chilli",
+      "check hostapd hostapd",
+      "check tc tc",
+      "check ubus ubus",
+      "if [ -e /etc/init.d/qos ]; then echo qos=yes; else echo qos=no; fi",
+      "if [ -e /etc/init.d/dnsmasq ]; then echo dnsmasq=yes; else echo dnsmasq=no; fi",
+      "if [ -e /etc/openwrt_release ]; then cat /etc/openwrt_release; fi",
+      "cat /proc/cpuinfo 2>/dev/null | grep -m1 'model name' || true",
+      "uname -m 2>/dev/null || true",
+      "cat /proc/uptime 2>/dev/null | awk '{print \"uptime=\" int($1)}'",
+    ].join("; ");
+
+    const result = await this.shell.exec(script);
+    const lines = result.stdout.split("\n").map((line) => line.trim()).filter(Boolean);
+
+    const features: Record<string, boolean> = {
+      chilli: false,
+      hostapd: false,
+      tc: false,
+      ubus: false,
+      qos: false,
+      dnsmasq: false,
+    };
+    const fields: Record<string, string> = {};
+
+    for (const line of lines) {
+      const eq = line.indexOf("=");
+      if (eq === -1) {
+        if (line.startsWith("DISTRIB_")) {
+          const [key, ...rest] = line.split("=");
+          fields[key] = (rest.join("=") || "").replace(/^['"]|['"]$/g, "");
+        }
+        continue;
+      }
+      const key = line.slice(0, eq);
+      const value = line.slice(eq + 1);
+      if (key in features) {
+        features[key] = value === "yes";
+      } else if (key === "uptime") {
+        fields.uptimeSeconds = value;
+      } else {
+        fields[key] = value;
+      }
+    }
+
+    return {
+      routerId,
+      kind: "capabilities",
+      status: "OK",
+      data: {
+        platform: "openwrt",
+        model: fields["model name"] || fields.DISTRIB_DESCRIPTION || "OpenWrt gateway",
+        firmware: fields.DISTRIB_DESCRIPTION ?? null,
+        release: fields.DISTRIB_RELEASE ?? null,
+        architecture: result.stdout.split("\n").filter((line) => /^[a-z0-9_-]+$/i.test(line.trim()))[0]?.trim() ?? null,
+        uptimeSeconds: Number(fields.uptimeSeconds) || 0,
+        features,
+        supportedCommands: {
+          apply_profile: features.qos || features.tc,
+          create_user: features.chilli || features.hostapd,
+          create_voucher: features.chilli,
+          disconnect_user: features.chilli || features.ubus,
+          create_queue: features.tc,
+          create_pool: features.dnsmasq,
+          create_pppoe_profile: true,
+          create_hotspot_profile: features.chilli,
+          heartbeat: true,
+        },
+        supportedQueries: {
+          sessions: features.chilli,
+          usage: true,
+          health: true,
+          capabilities: true,
+        },
       },
     };
   }

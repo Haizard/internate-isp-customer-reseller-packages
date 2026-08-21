@@ -578,6 +578,11 @@ export class RouterAdaptersService {
     return { adapterType: adapterKind, ...result, routerId };
   }
 
+  async getCapabilities(routerId: string, organizationId: string) {
+    const { adapterKind, result } = await this.queryRouter(routerId, organizationId, "capabilities");
+    return { adapterType: adapterKind, ...result, routerId };
+  }
+
   async getCommands(routerId: string, organizationId: string) {
     await this.assertRouterInScope(routerId, organizationId);
     const commandClient = (prisma as any).routerAdapterCommand;
