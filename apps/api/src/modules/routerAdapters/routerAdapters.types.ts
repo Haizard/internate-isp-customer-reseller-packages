@@ -1,6 +1,6 @@
 export interface RouterAdapterCommandResult {
   routerId: string;
-  adapterType: "simulator";
+  adapterType: "simulator" | "mikrotik" | "openwrt";
   status: "APPLIED" | "PENDING" | "FAILED";
   configurationVersion: number;
   appliedProfile: {
@@ -13,7 +13,7 @@ export interface RouterAdapterCommandResult {
 
 export interface RouterAdapterStatus {
   routerId: string;
-  adapterType: "simulator";
+  adapterType: "simulator" | "mikrotik" | "openwrt";
   connected: boolean;
   lastHeartbeatAt: string;
   status: "ACTIVE" | "OFFLINE";

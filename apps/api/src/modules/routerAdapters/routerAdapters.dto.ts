@@ -20,8 +20,12 @@ export const createVoucherSchema = z.object({
 });
 
 export const enrollRouterSchema = z.object({
-  adapterType: z.enum(["simulator", "mikrotik"]).default("simulator"),
+  adapterType: z.enum(["simulator", "mikrotik", "openwrt"]).default("simulator"),
   pairingCode: z.string().min(1),
+  host: z.string().optional(),
+  port: z.number().int().positive().max(65535).optional(),
+  username: z.string().optional(),
+  password: z.string().optional(),
 });
 
 export const disconnectUserSchema = z.object({

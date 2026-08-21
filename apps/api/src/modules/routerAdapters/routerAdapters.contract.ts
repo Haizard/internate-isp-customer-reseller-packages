@@ -1,4 +1,4 @@
-export type AdapterKind = "simulator" | "mikrotik";
+export type AdapterKind = "simulator" | "mikrotik" | "openwrt";
 
 export type RouterAdapterCommandKind =
   | "apply_profile"
@@ -44,7 +44,7 @@ export interface AdapterConfig {
   username?: string;
   password?: string;
   pairingCode?: string;
-  connectionMode: "simulator" | "api";
+  connectionMode: "simulator" | "api" | "ssh";
   /** Simulator-only: simulate a gateway that cannot be reached. */
   simulateOffline?: boolean;
   /** Simulator-only: report expired customer sessions in session reads. */

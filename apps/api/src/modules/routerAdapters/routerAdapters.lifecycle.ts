@@ -1,6 +1,6 @@
 export interface RouterAdapterLifecycleState {
   routerId: string;
-  adapterKind: "simulator" | "mikrotik";
+  adapterKind: "simulator" | "mikrotik" | "openwrt";
   pendingCommands: number;
   reconciliation: {
     id: string;

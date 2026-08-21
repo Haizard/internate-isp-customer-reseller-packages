@@ -16,6 +16,7 @@ import type { RouterAdapterCommandResult, RouterAdapterStatus } from "./routerAd
 import type { AdapterCommandEnvelope, AdapterConfig, AdapterKind, AdapterQueryKind, RouterAdapter } from "./routerAdapters.contract";
 import type { RouterAdapterLifecycleState } from "./routerAdapters.lifecycle";
 import { MikroTikAdapter } from "./mikrotikAdapter";
+import { OpenWrtAdapter } from "./openwrtAdapter";
 import { SimulatorAdapter } from "./simulatorAdapter";
 
 export class RouterAdaptersService {
@@ -23,8 +24,12 @@ export class RouterAdaptersService {
     const adapterKind = input.adapterType;
     const config: AdapterConfig = {
       adapterKind,
-      connectionMode: adapterKind === "mikrotik" ? "api" : "simulator",
+      connectionMode: adapterKind === "simulator" ? "simulator" : adapterKind === "mikrotik" ? "api" : "ssh",
       pairingCode: input.pairingCode,
+      host: input.host,
+      port: input.port,
+      username: input.username,
+      password: input.password,
     };
 
     if (process.env.ROUTER_ADAPTER_HOST) {
@@ -124,20 +129,26 @@ export class RouterAdaptersService {
     const reconciliation = reconciliationClient?.findFirst
       ? await reconciliationClient.findFirst({ where: { routerId } })
       : null;
-    return reconciliation?.adapterKind === "mikrotik" ? "mikrotik" : "simulator";
+    if (reconciliation?.adapterKind === "mikrotik") return "mikrotik";
+    if (reconciliation?.adapterKind === "openwrt") return "openwrt";
+    return "simulator";
   }
 
   private buildAdapter(config: AdapterConfig): RouterAdapter {
-    return config.adapterKind === "mikrotik"
-      ? new MikroTikAdapter(config)
-      : new SimulatorAdapter(config);
+    if (config.adapterKind === "mikrotik") return new MikroTikAdapter(config);
+    if (config.adapterKind === "openwrt") return new OpenWrtAdapter(config);
+    return new SimulatorAdapter(config);
   }
 
-  private buildRouterAdapterConfig(routerId: string, adapterKind: AdapterKind): AdapterConfig {
+  private buildRouterAdapterConfig(routerId: string, adapterKind: AdapterKind, connection?: Record<string, unknown>): AdapterConfig {
     const config: AdapterConfig = {
       adapterKind,
-      connectionMode: adapterKind === "mikrotik" ? "api" : "simulator",
+      connectionMode: adapterKind === "simulator" ? "simulator" : adapterKind === "mikrotik" ? "api" : "ssh",
       pairingCode: routerId,
+      host: typeof connection?.host === "string" ? connection.host : undefined,
+      port: typeof connection?.port === "number" ? connection.port : undefined,
+      username: typeof connection?.username === "string" ? connection.username : undefined,
+      password: typeof connection?.password === "string" ? connection.password : undefined,
     };
 
     if (process.env.ROUTER_ADAPTER_HOST) {
@@ -169,7 +180,14 @@ export class RouterAdaptersService {
   }
 
   private async resolveAdapterConfig(routerId: string, adapterKind: AdapterKind): Promise<AdapterConfig> {
-    const config = this.buildRouterAdapterConfig(routerId, adapterKind);
+    const reconciliationClient = (prisma as any).routerAdapterReconciliation;
+    const reconciliation = reconciliationClient?.findFirst
+      ? await reconciliationClient.findFirst({ where: { routerId } })
+      : null;
+    const desired = (reconciliation?.desiredJson as Record<string, unknown> | null) ?? {};
+    const connection = (desired.connection as Record<string, unknown> | undefined) ?? {};
+
+    const config = this.buildRouterAdapterConfig(routerId, adapterKind, connection);
     if (adapterKind === "simulator") {
       const simulation = await this.resolveSimulation(routerId);
       config.simulateOffline = simulation.offline;
@@ -237,18 +255,20 @@ export class RouterAdaptersService {
 
   private async executeAdapterCommand(
     command: AdapterCommandEnvelope,
-    adapterKind: "simulator" | "mikrotik",
+    adapterKind: "simulator" | "mikrotik" | "openwrt",
     config?: AdapterConfig,
   ) {
     const adapterConfig = config ?? {
       adapterKind,
-      connectionMode: adapterKind === "mikrotik" ? "api" : "simulator",
+      connectionMode: adapterKind === "simulator" ? "simulator" : adapterKind === "mikrotik" ? "api" : "ssh",
       pairingCode: command.routerId,
     };
 
     const adapter: RouterAdapter = adapterKind === "mikrotik"
       ? new MikroTikAdapter(adapterConfig)
-      : new SimulatorAdapter(adapterConfig);
+      : adapterKind === "openwrt"
+        ? new OpenWrtAdapter(adapterConfig)
+        : new SimulatorAdapter(adapterConfig);
 
     await adapter.connect();
     const executionResult = await adapter.execute(command);
@@ -256,7 +276,7 @@ export class RouterAdaptersService {
     return { command, executionResult };
   }
 
-  private async persistReconciliation(routerId: string, desiredState: Record<string, unknown>, adapterKind: "simulator" | "mikrotik") {
+  private async persistReconciliation(routerId: string, desiredState: Record<string, unknown>, adapterKind: "simulator" | "mikrotik" | "openwrt") {
     const reconciliationClient = (prisma as any).routerAdapterReconciliation;
     if (!reconciliationClient?.upsert) {
       return;
@@ -311,7 +331,13 @@ export class RouterAdaptersService {
       },
     });
 
-    await this.executeAdapterCommand(command, input.adapterType === "mikrotik" ? "mikrotik" : "simulator", this.buildAdapterConfig(input));
+    await this.executeAdapterCommand(
+      command,
+      input.adapterType === "mikrotik" ? "mikrotik" : input.adapterType === "openwrt" ? "openwrt" : "simulator",
+      this.buildAdapterConfig(input),
+    );
+
+    await this.persistEnrollment(routerId, input);
 
     return {
       routerId,
@@ -321,6 +347,37 @@ export class RouterAdaptersService {
       enrolledAt: new Date().toISOString(),
       command,
     };
+  }
+
+  private async persistEnrollment(routerId: string, input: EnrollRouterInput) {
+    const reconciliationClient = (prisma as any).routerAdapterReconciliation;
+    if (!reconciliationClient?.upsert) return;
+
+    const adapterKind = input.adapterType;
+    const desiredJson: Record<string, unknown> = {
+      routerId,
+      adapterType: adapterKind,
+      configurationVersion: 1,
+      connection:
+        adapterKind === "openwrt"
+          ? {
+              host: input.host,
+              port: input.port,
+              username: input.username,
+              password: input.password,
+            }
+          : { mode: adapterKind === "mikrotik" ? "api" : "simulator" },
+    };
+
+    try {
+      await reconciliationClient.upsert({
+        where: { routerId },
+        create: { routerId, adapterKind, status: "APPLIED", desiredJson, appliedJson: desiredJson },
+        update: { adapterKind, status: "APPLIED", desiredJson, appliedJson: desiredJson, updatedAt: new Date().toISOString() },
+      });
+    } catch (error) {
+      console.warn("Unable to persist router adapter enrollment", error);
+    }
   }
 
   async applyProfile(routerId: string, input: ApplyProfileInput, organizationId: string, actorUserId: string) {
@@ -355,13 +412,17 @@ export class RouterAdaptersService {
       },
     });
 
-    const { command: executedCommand } = await this.executeAdapterCommand(command, "simulator", this.buildAdapterConfig({ adapterType: "simulator", pairingCode: routerId } as EnrollRouterInput));
+    const { command: executedCommand } = await this.executeAdapterCommand(
+      command,
+      await this.getAdapterKind(routerId),
+      await this.resolveAdapterConfig(routerId, await this.getAdapterKind(routerId)),
+    );
     await this.persistCommand(executedCommand);
-    await this.persistReconciliation(routerId, appliedProfile, "simulator");
+    await this.persistReconciliation(routerId, appliedProfile, await this.getAdapterKind(routerId));
 
     return {
       routerId,
-      adapterType: "simulator",
+      adapterType: await this.getAdapterKind(routerId),
       status: "APPLIED",
       configurationVersion,
       appliedProfile,
@@ -398,14 +459,14 @@ export class RouterAdaptersService {
 
     const { command: executedCommand } = await this.executeAdapterCommand(
       command,
-      "simulator",
-      this.buildAdapterConfig({ adapterType: "simulator", pairingCode: routerId } as EnrollRouterInput),
+      await this.getAdapterKind(routerId),
+      await this.resolveAdapterConfig(routerId, await this.getAdapterKind(routerId)),
     );
     await this.persistCommand(executedCommand);
 
     return {
       routerId,
-      adapterType: "simulator",
+      adapterType: await this.getAdapterKind(routerId),
       status: "APPLIED",
       configurationVersion: 1,
       appliedAt: new Date().toISOString(),
@@ -440,14 +501,14 @@ export class RouterAdaptersService {
 
     const { command: executedCommand } = await this.executeAdapterCommand(
       command,
-      "simulator",
-      this.buildAdapterConfig({ adapterType: "simulator", pairingCode: routerId } as EnrollRouterInput),
+      await this.getAdapterKind(routerId),
+      await this.resolveAdapterConfig(routerId, await this.getAdapterKind(routerId)),
     );
     await this.persistCommand(executedCommand);
 
     return {
       routerId,
-      adapterType: "simulator",
+      adapterType: await this.getAdapterKind(routerId),
       status: "APPLIED",
       configurationVersion: 1,
       appliedAt: new Date().toISOString(),
@@ -464,12 +525,17 @@ export class RouterAdaptersService {
       throw new AppError(404, "Router not found in your scope");
     }
 
+    const adapterKind = await this.getAdapterKind(routerId);
+    const adapter = this.buildAdapter(await this.resolveAdapterConfig(routerId, adapterKind));
+    const connection = (await adapter.connect()) as { connected?: boolean };
+    const connected = connection.connected === true;
+
     return {
       routerId,
-      adapterType: "simulator",
-      connected: true,
+      adapterType: adapterKind,
+      connected,
       lastHeartbeatAt: new Date().toISOString(),
-      status: "ACTIVE",
+      status: connected ? "ACTIVE" : "OFFLINE",
     } as RouterAdapterStatus;
   }
 
@@ -484,13 +550,13 @@ export class RouterAdaptersService {
   }
 
   async getSessionSnapshot(routerId: string, organizationId: string) {
-    const { result } = await this.queryRouter(routerId, organizationId, "sessions");
+    const { adapterKind, result } = await this.queryRouter(routerId, organizationId, "sessions");
     const sessions = Array.isArray(result.data.sessions) ? result.data.sessions : [];
     const activeSessions = Number(result.data.activeSessions ?? sessions.length ?? 0);
 
     return {
       routerId,
-      adapterType: "simulator",
+      adapterType: adapterKind,
       activeSessions,
       connectedClients: activeSessions,
       lastHeartbeatAt: new Date().toISOString(),
@@ -837,7 +903,7 @@ export class RouterAdaptersService {
 
     return {
       routerId,
-      adapterKind: "simulator",
+      adapterKind: (reconciliation?.adapterKind ?? "simulator") as RouterAdapterLifecycleState["adapterKind"],
       pendingCommands: pendingCommands.filter((command: { status?: string }) => command.status === "PENDING").length,
       reconciliation: {
         id: reconciliation?.id ?? `${routerId}-reconciliation`,
