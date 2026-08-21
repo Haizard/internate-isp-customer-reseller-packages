@@ -4,7 +4,7 @@
 
 MVP 2 extends NetMaster from a cloud-only simulated platform into a platform that can control a reseller's real local gateway. The cloud remains responsible for business operations. The gateway or router remains responsible for enforcing network policy.
 
-MVP 2 is intentionally staged. MikroTik is the first hardware target because the project has the Mikhmon reference system and MikroTik RouterOS exposes the capabilities needed for hotspot users, profiles, vouchers, sessions, and queues. OpenWrt is the second hardware target because it supports lower-cost router hardware and can run the Rust Gateway Agent.
+MVP 2 is intentionally staged. MikroTik is the first hardware target because the project has the Mikhmon reference system and MikroTik RouterOS exposes the capabilities needed for hotspot users, profiles, vouchers, sessions, and queues. OpenWrt is the second hardware target because it supports lower-cost router hardware and is controllable over SSH from a cloud-side Node.js adapter (no on-device agent).
 
 ## 2. Target Architecture
 
@@ -17,7 +17,7 @@ Reseller WAN / ONT
           v
 Reseller gateway
   - MikroTik RouterOS, or
-  - OpenWrt/Linux + Rust Gateway Agent
+  - OpenWrt (stock firmware, controlled over SSH)
           |
           +-- Access points
           +-- Switches
@@ -28,7 +28,7 @@ NetMaster Cloud
           |
           +-- MikroTik RouterOS Adapter
           |
-          +-- Rust Gateway Protocol / Agent
+          +-- OpenWrt SSH Adapter
 ```
 
 NetMaster does not carry customer internet traffic. It stores the desired business and network state, sends commands, receives status and usage, and displays the results. The local gateway enforces authentication, speed, quota, expiration, and disconnection.
@@ -56,7 +56,7 @@ The following integrations are optional later paths and are not required to star
 
 - ISP API
 - RADIUS integration
-- OpenWrt Gateway Agent
+- OpenWrt SSH adapter (available after MVP 2D)
 - Captive portal integration
 - ISP webhook or provisioning interface
 
@@ -89,24 +89,30 @@ Owns the cloud-side integration with RouterOS API. It translates NetMaster opera
 
 The MikroTik adapter does not require Rust to run on the RouterOS device. RouterOS devices run RouterOS, and the adapter communicates with them through the supported RouterOS API.
 
-### Rust Gateway Agent
+### OpenWrt adapter
 
-Owns edge operations on OpenWrt or another supported Linux gateway. It should be a separate application or repository when implementation begins.
+Owns the cloud-side integration with an OpenWrt gateway over SSH. It connects to the router with `ssh2`, runs a shell, and translates NetMaster operations into OpenWrt commands such as:
 
-The agent handles:
+- UCI configuration writes for hotspot and captive-portal policy
+- CoovaChilli user and voucher management (with hostapd fallback)
+- `tc`/HTB traffic shaping and QoS queues (via qos-scripts when present)
+- `dnsmasq` DHCP pool provisioning
+- Active session reads via `chilli_query` and DHCP lease files
+- Session disconnects and user suspension
+- Router status and usage reads via `/proc`
 
-- Secure outbound connection to NetMaster
-- Device identity and enrollment
+Like the MikroTik adapter, the OpenWrt adapter runs entirely in the cloud and requires no Rust or on-device agent. OpenWrt ships with OpenSSH, so the adapter works against stock firmware. Optional integration packages (CoovaChilli, qos-scripts) are feature-detected on the router and degrade gracefully to clean failures when absent.
+
+The OpenWrt adapter handles:
+
+- SSH host/port/username/password credentials per router, captured at enrollment
 - Heartbeats and health reporting
-- Local device discovery
 - Applying firewall and traffic-control policy
 - Applying captive portal or local authentication configuration
-- Local queueing of commands while offline
-- Idempotent retries and reconciliation
+- Idempotent retries and reconciliation through the shared command queue
 - Reporting applied configuration versions and usage
-- Safe recovery after process or power failure
 
-Rust is not the cloud backend, the dashboard, or the ISP core router. Rust is the long-running edge controller that operates close to the customer network.
+Because the adapter runs in the cloud, offline queueing and recovery are owned by the existing cloud command queue and reconciliation layer rather than an on-device agent. This requires the router to be reachable from the cloud API over SSH while online.
 
 ## 4. Delivery Stages
 
@@ -169,7 +175,7 @@ After the MikroTik adapter works:
 - Reconciliation after offline periods
 - Operational logs and failure messages
 
-### MVP 2D - OpenWrt and Rust Gateway Agent
+### MVP 2D - OpenWrt integration
 
 Second hardware path.
 
@@ -177,14 +183,14 @@ Start with one exact, documented OpenWrt-supported hardware model and hardware r
 
 Deliver:
 
-- Rust Gateway Agent build for the selected OpenWrt target
-- Secure enrollment and outbound connection
+- Cloud-side Node.js OpenWrt SSH adapter (no on-device agent)
+- Secure SSH enrollment and credential handling per router
 - Heartbeat and system health
-- Device discovery
-- Local firewall and traffic-control adapter
-- Voucher/customer policy application
-- Offline queue and reconciliation
-- Agent upgrade and rollback strategy
+- Firewall and traffic-control policy application (UCI, `tc`/HTB)
+- Voucher/customer policy application (CoovaChilli with hostapd fallback)
+- Session, usage, and lease reads
+- Offline command queue and reconciliation via the existing cloud layer
+- Graceful feature detection when optional OpenWrt packages are absent
 
 The OpenWrt adapter and MikroTik adapter must implement the same NetMaster capability contract, even though their underlying commands are different.
 

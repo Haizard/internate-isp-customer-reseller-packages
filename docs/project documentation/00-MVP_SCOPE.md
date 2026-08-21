@@ -62,7 +62,7 @@ database doc) — never trust the client for authorization.
 
 ## 5. OUT OF SCOPE for MVP (explicitly deferred)
 - Real router/firmware integration (OpenWrt, MikroTik) — routers are DB records only
-- Rust Gateway Agent, RADIUS, captive portal, real traffic shaping/QoS
+- On-device edge agents, RADIUS, captive portal, real traffic shaping/QoS
 - Real payment gateway integration (mobile money, card) — requests are logged, not charged
 - Multi-location reseller with multiple routers doing real load balancing
 - Notifications (SMS/email/push) — UI shows placeholders only

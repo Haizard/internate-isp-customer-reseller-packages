@@ -7,9 +7,9 @@
 - **Auth:** JWT (access + refresh token), bcrypt for password hashing
 - **Monorepo tool:** Turborepo (or plain npm workspaces if you want it simpler for MVP)
 
-> Rust Gateway Agent, RADIUS, and other Phase 2+ pieces get their own repos later. MVP 2
-> planning is documented in `05-MVP2_ROADMAP.md`; do not scaffold the Rust agent until the
-> simulator contract and MikroTik adapter direction are approved.
+> On-device edge agents, RADIUS, and other Phase 2+ pieces get their own repos later. MVP 2
+> planning is documented in `05-MVP2_ROADMAP.md`; router adapters (MikroTik, OpenWrt) live
+> in the cloud as Node.js modules under `apps/api/src/modules/routerAdapters/`.
 
 ## 2. Repository Layout
 ```

@@ -30,7 +30,7 @@ Before taking any action, inspect and follow these documents in order:
 ## 3. Strict Rules for AI Coding Agents
 
 ### Rule 1: Respect MVP Scope Boundries
-- **NEVER** write code for deferred Phase 2+ features (Rust Gateway Agent, real hardware flashing, RADIUS, real payment gateways, push notifications, AI analytics).
+- **NEVER** write code for deferred Phase 2+ features (on-device edge agents, real hardware flashing, RADIUS, real payment gateways, push notifications, AI analytics).
 - Focus **exclusively** on features listed in `docs/00-MVP_SCOPE.md` §4.
 
 ### Rule 2: Multi-Tenancy & Security First
