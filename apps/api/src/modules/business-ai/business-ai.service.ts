@@ -2,6 +2,7 @@ import { prisma } from "../../prisma/client";
 import { AppError } from "../../middleware/errorHandler";
 import { AIEngine, type ConversationState } from "./ai-engine";
 import { AnalyticsEngine, type SalesData } from "./analytics-engine";
+import { AutomationEngine } from "./automation-engine";
 
 const aiEngine = new AIEngine();
 
@@ -370,6 +371,214 @@ export class BusinessAIService {
     );
 
     return { insights, predictions, progress };
+  }
+
+  /**
+   * Auto-adjust pricing based on sales data
+   */
+  async autoAdjustPricing(resellerId: string) {
+    const automationEngine = new AutomationEngine();
+    const analyticsEngine = new AnalyticsEngine();
+
+    const vouchers = await prisma.voucher.findMany({
+      where: { organizationId: resellerId, status: "USED" },
+      include: { location: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+
+    const salesHistory: SalesData[] = vouchers.map((v) => ({
+      date: v.createdAt.toISOString().split("T")[0],
+      locationId: v.locationId || undefined,
+      locationName: v.location?.name || undefined,
+      voucherCount: 1,
+      revenue: 0,
+      customers: 1,
+    }));
+
+    const locations = await prisma.location.findMany({
+      where: { organizationId: resellerId },
+      include: { routers: { select: { id: true } } },
+    });
+
+    const locationData = locations.map((loc) => ({
+      name: loc.name,
+      routers: loc.routers.length,
+      customers: 10,
+    }));
+
+    const predictions = analyticsEngine.analyzeDemand(salesHistory, locationData);
+
+    // Get current packages
+    const packages = await prisma.package.findMany({
+      where: { organizationId: resellerId },
+    });
+
+    const currentPackages = packages.map((p) => ({
+      name: p.name,
+      price: p.priceCents,
+      locationName: undefined,
+    }));
+
+    return automationEngine.autoAdjustPricing(salesHistory, predictions, currentPackages);
+  }
+
+  /**
+   * Generate auto voucher batches
+   */
+  async generateVoucherBatches(resellerId: string, daysAhead: number = 7) {
+    const automationEngine = new AutomationEngine();
+    const analyticsEngine = new AnalyticsEngine();
+
+    const activePlan = await prisma.businessPlan.findFirst({
+      where: { resellerId, status: "ACTIVE" },
+      orderBy: { activatedAt: "desc" },
+    });
+
+    if (!activePlan) {
+      throw new AppError(400, "No active plan. Create and activate a plan first.");
+    }
+
+    const vouchers = await prisma.voucher.findMany({
+      where: { organizationId: resellerId, status: "USED" },
+      include: { location: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+
+    const salesHistory: SalesData[] = vouchers.map((v) => ({
+      date: v.createdAt.toISOString().split("T")[0],
+      locationId: v.locationId || undefined,
+      locationName: v.location?.name || undefined,
+      voucherCount: 1,
+      revenue: 0,
+      customers: 1,
+    }));
+
+    const locations = await prisma.location.findMany({
+      where: { organizationId: resellerId },
+      include: { routers: { select: { id: true } } },
+    });
+
+    const locationData = locations.map((loc) => ({
+      name: loc.name,
+      routers: loc.routers.length,
+      customers: 10,
+    }));
+
+    const predictions = analyticsEngine.analyzeDemand(salesHistory, locationData);
+
+    return automationEngine.generateVoucherBatches(
+      {
+        locationPlans: (activePlan.locationPlans as any[]) || [],
+        salesStyle: "mixed",
+      },
+      predictions,
+      daysAhead
+    );
+  }
+
+  /**
+   * Calculate ROI for new location expansion
+   */
+  async calculateExpansionROI(resellerId: string, newLocationName: string) {
+    const automationEngine = new AutomationEngine();
+    const analyticsEngine = new AnalyticsEngine();
+
+    const vouchers = await prisma.voucher.findMany({
+      where: { organizationId: resellerId, status: "USED" },
+      include: { location: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+
+    const salesHistory: SalesData[] = vouchers.map((v) => ({
+      date: v.createdAt.toISOString().split("T")[0],
+      locationId: v.locationId || undefined,
+      locationName: v.location?.name || undefined,
+      voucherCount: 1,
+      revenue: 0,
+      customers: 1,
+    }));
+
+    const locations = await prisma.location.findMany({
+      where: { organizationId: resellerId },
+      include: { routers: { select: { id: true } } },
+    });
+
+    const locationData = locations.map((loc) => ({
+      name: loc.name,
+      routers: loc.routers.length,
+      customers: 10,
+    }));
+
+    const predictions = analyticsEngine.analyzeDemand(salesHistory, locationData);
+
+    const activePlan = await prisma.businessPlan.findFirst({
+      where: { resellerId, status: "ACTIVE" },
+    });
+
+    const planData = {
+      monthlyProfitTarget: activePlan?.monthlyProfitTarget || 100000,
+      monthlyRevenueTarget: activePlan?.monthlyRevenueTarget || 150000,
+      totalCosts: activePlan?.totalCosts || 25000,
+    };
+
+    // Get router options from shop
+    const products = await prisma.product.findMany({
+      where: { published: true },
+      take: 10,
+    });
+
+    const routerOptions = products.map((p) => ({
+      name: p.name,
+      price: p.priceCents,
+      features: (p.specs as any)?.features || ["Basic routing"],
+    }));
+
+    return automationEngine.calculateExpansionROI(
+      newLocationName,
+      predictions,
+      planData,
+      routerOptions
+    );
+  }
+
+  /**
+   * Get load balancing recommendations
+   */
+  async getLoadBalancing(resellerId: string) {
+    const automationEngine = new AutomationEngine();
+
+    const locations = await prisma.location.findMany({
+      where: { organizationId: resellerId },
+      include: { routers: { select: { id: true } } },
+    });
+
+    // Get sales data per location
+    const vouchers = await prisma.voucher.findMany({
+      where: { organizationId: resellerId, status: "USED" },
+      include: { location: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+
+    const now = new Date();
+    const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+    const monthVouchers = vouchers.filter((v) => v.createdAt.toISOString() >= monthStart);
+
+    const locationData = locations.map((loc) => {
+      const locVouchers = monthVouchers.filter((v) => v.location?.name === loc.name);
+      return {
+        name: loc.name,
+        routers: loc.routers.length,
+        customers: locVouchers.length || 10,
+        currentRevenue: locVouchers.length * 1500, // Estimate
+        targetRevenue: 30000, // Default target
+      };
+    });
+
+    return automationEngine.balanceLoad(locationData);
   }
 
   /**

@@ -285,6 +285,12 @@ export default function AIBusinessPartnerPage() {
             >
               📊 Insights
             </button>
+            <button
+              onClick={() => router.push("/reseller/ai-business/automation")}
+              className="px-4 py-2 rounded-lg text-sm font-medium border border-[var(--border-subtle)] hover:bg-[var(--bg-surface)] transition-all"
+            >
+              ⚙️ Automation
+            </button>
             {currentPlan && currentPlan.status !== "ACTIVE" && currentPlan.monthlyProfitTarget > 0 && (
               <button
                 onClick={() => applyPlan(currentPlan.id)}

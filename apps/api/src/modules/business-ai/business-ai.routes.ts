@@ -16,5 +16,9 @@ router.post("/plans/:planId/apply", (req, res, next) => controller.applyPlan(req
 router.get("/insights", (req, res, next) => controller.getInsights(req, res, next));
 router.get("/predictions", (req, res, next) => controller.getDemandPredictions(req, res, next));
 router.get("/progress", (req, res, next) => controller.getProgressReport(req, res, next));
+router.get("/auto-pricing", (req, res, next) => controller.autoAdjustPricing(req, res, next));
+router.post("/generate-vouchers", (req, res, next) => controller.generateVoucherBatches(req, res, next));
+router.post("/expansion-roi", (req, res, next) => controller.calculateExpansionROI(req, res, next));
+router.get("/load-balancing", (req, res, next) => controller.getLoadBalancing(req, res, next));
 
 export default router;

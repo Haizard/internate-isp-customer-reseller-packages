@@ -97,4 +97,46 @@ export class BusinessAIController {
       next(err);
     }
   }
+
+  async autoAdjustPricing(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).userId;
+      const result = await service.autoAdjustPricing(userId);
+      res.json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async generateVoucherBatches(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).userId;
+      const { daysAhead } = req.body || {};
+      const result = await service.generateVoucherBatches(userId, daysAhead || 7);
+      res.json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async calculateExpansionROI(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).userId;
+      const { locationName } = req.body;
+      const result = await service.calculateExpansionROI(userId, locationName);
+      res.json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getLoadBalancing(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).userId;
+      const result = await service.getLoadBalancing(userId);
+      res.json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
 }
