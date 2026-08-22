@@ -3,12 +3,14 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useState } from "react";
+import { NetworkBackground } from "@/components/marketing/NetworkBackground";
 
 export default function MarketingLayout({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      <NetworkBackground />
       {/* ═══ NAVBAR ═══ */}
       <header className="glass-strong sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
@@ -81,7 +83,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
       </header>
 
       {/* ═══ MAIN ═══ */}
-      <main className="flex-1 bg-networking bg-networking-nodes">{children}</main>
+      <main className="flex-1 relative z-10">{children}</main>
 
       {/* ═══ FOOTER ═══ */}
       <footer className="glass-strong border-t border-[var(--hairline)] mt-auto">
