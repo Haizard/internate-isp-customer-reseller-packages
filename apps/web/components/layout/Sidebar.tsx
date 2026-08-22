@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "../ui/Icon";
+import { ThemeToggle } from "../ui/ThemeToggle";
 import { NavLink, type NavItem } from "./NavLink";
 import { logout } from "@/lib/auth";
 
@@ -49,6 +50,7 @@ export function Sidebar({ brand, items, accent, userName, userRole, headerAction
             <p className="text-footnote font-semibold text-text-primary truncate">{userName}</p>
             <p className="text-caption text-text-tertiary">{userRole.toLowerCase()}</p>
           </div>
+          <ThemeToggle />
           <button
             onClick={logout}
             className="text-text-tertiary hover:text-accent-red transition-colors"

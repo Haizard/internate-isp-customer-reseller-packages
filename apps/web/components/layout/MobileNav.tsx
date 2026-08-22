@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Icon } from "../ui/Icon";
+import { ThemeToggle } from "../ui/ThemeToggle";
 import { logout } from "@/lib/auth";
 
 export function MobileTabBar({ items, accent }: { items: { href: string; label: string; icon: string }[]; accent: string }) {
@@ -61,6 +62,7 @@ export function MobileTopBar({
       </div>
       <div className="flex items-center gap-1">
         {headerActions}
+        <ThemeToggle />
         <button onClick={logout} className="text-text-tertiary hover:text-accent-red transition-colors" aria-label="Log out">
           <Icon name="logOut" size={20} />
         </button>

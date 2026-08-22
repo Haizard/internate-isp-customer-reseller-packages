@@ -106,6 +106,74 @@
   --duration-base: 280ms;
 }
 
+/* ------------------------------------------------------------------ */
+/* Dark Mode Override                                                  */
+/* ------------------------------------------------------------------ */
+[data-theme="dark"] {
+  --bg-base: #0d1117;
+  --bg-gradient: linear-gradient(160deg, #0d1117 0%, #161b22 45%, #1c2128 100%);
+  --bg-elevated: #161b22;
+
+  --glass-surface: rgba(22, 27, 34, 0.65);
+  --glass-surface-strong: rgba(22, 27, 34, 0.82);
+  --glass-surface-subtle: rgba(22, 27, 34, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.08);
+
+  --accent-blue: #4da6ff;
+  --accent-green: #3fb950;
+  --accent-orange: #f0a030;
+  --accent-red: #f85149;
+  --accent-purple: #d2a8ff;
+  --accent-teal: #56d4dd;
+
+  --grad-blue: linear-gradient(135deg, #4da6ff 0%, #388bfd 55%, #1f6feb 100%);
+  --grad-green: linear-gradient(135deg, #56d364 0%, #3fb950 55%, #238636 100%);
+  --grad-orange: linear-gradient(135deg, #f0a030 0%, #d29922 55%, #bb8009 100%);
+  --grad-red: linear-gradient(135deg, #f85149 0%, #da3633 55%, #b62324 100%);
+  --grad-purple: linear-gradient(135deg, #d2a8ff 0%, #a371f7 55%, #8957e5 100%);
+  --grad-teal: linear-gradient(135deg, #56d4dd 0%, #39c5cf 55%, #1b9eaa 100%);
+  --grad-gray: linear-gradient(135deg, #6e7681 0%, #484f58 100%);
+
+  --tint-blue: rgba(56, 139, 253, 0.15);
+  --tint-green: rgba(63, 185, 80, 0.15);
+  --tint-orange: rgba(210, 153, 34, 0.15);
+  --tint-red: rgba(248, 81, 73, 0.15);
+  --tint-purple: rgba(163, 113, 247, 0.15);
+  --tint-teal: rgba(57, 197, 207, 0.15);
+
+  --card-tint-blue: linear-gradient(180deg, rgba(56, 139, 253, 0.1), transparent 60%);
+  --card-tint-purple: linear-gradient(180deg, rgba(163, 113, 247, 0.1), transparent 60%);
+  --card-tint-teal: linear-gradient(180deg, rgba(57, 197, 207, 0.1), transparent 60%);
+  --card-tint-green: linear-gradient(180deg, rgba(63, 185, 80, 0.1), transparent 60%);
+  --card-tint-orange: linear-gradient(180deg, rgba(210, 153, 34, 0.1), transparent 60%);
+
+  --hairline: rgba(255, 255, 255, 0.06);
+  --hairline-accent: rgba(56, 139, 253, 0.15);
+  --table-head: rgba(56, 139, 253, 0.1);
+
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-tertiary: #6e7681;
+  --text-on-accent: #ffffff;
+
+  --status-active: var(--accent-green);
+  --status-pending: var(--accent-orange);
+  --status-suspended: var(--accent-red);
+  --status-offline: #484f58;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2), 0 1px 1px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] body::before {
+  background: radial-gradient(circle, rgba(56, 139, 253, 0.15), transparent 68%);
+}
+
+[data-theme="dark"] body::after {
+  background: radial-gradient(circle, rgba(163, 113, 247, 0.12), transparent 68%);
+}
+
 /* Tailwind v4 theme mapping so components use utility classes */
 @theme inline {
   --color-accent-blue: var(--accent-blue);
