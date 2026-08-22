@@ -1,6 +1,7 @@
 import { prisma } from "../../prisma/client";
 import { AppError } from "../../middleware/errorHandler";
 import { AIEngine, type ConversationState } from "./ai-engine";
+import { AnalyticsEngine, type SalesData } from "./analytics-engine";
 
 const aiEngine = new AIEngine();
 
@@ -281,5 +282,173 @@ export class BusinessAIService {
     await prisma.businessPlan.delete({ where: { id: planId } });
 
     return { message: "Conversation deleted" };
+  }
+
+  /**
+   * Get AI insights for the reseller
+   */
+  async getInsights(resellerId: string) {
+    const analyticsEngine = new AnalyticsEngine();
+
+    // Get active plan
+    const activePlan = await prisma.businessPlan.findFirst({
+      where: { resellerId, status: "ACTIVE" },
+      orderBy: { activatedAt: "desc" },
+    });
+
+    // Get sales history from vouchers
+    const vouchers = await prisma.voucher.findMany({
+      where: { organizationId: resellerId, status: "USED" },
+      include: { location: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+
+    const salesHistory: SalesData[] = vouchers.map((v) => ({
+      date: v.createdAt.toISOString().split("T")[0],
+      locationId: v.locationId || undefined,
+      locationName: v.location?.name || undefined,
+      voucherCount: 1,
+      revenue: 0, // Voucher revenue needs to be tracked separately
+      customers: 1,
+    }));
+
+    // Get organization info
+    const org = await prisma.organization.findFirst({
+      where: { id: resellerId },
+    });
+
+    // Get router count
+    const locations = await prisma.location.findMany({
+      where: { organizationId: resellerId },
+      include: { routers: { select: { id: true } } },
+    });
+    const totalRouters = locations.reduce((sum, loc) => sum + loc.routers.length, 0);
+
+    const locationData = locations.map((loc) => ({
+      name: loc.name,
+      routers: loc.routers.length,
+      customers: 10, // Default
+    }));
+
+    if (!activePlan) {
+      return {
+        insights: [{
+          type: "suggestion" as const,
+          title: "🚀 Start Your Business Plan",
+          message: "You don't have an active business plan yet. Let me help you create one!",
+          priority: "medium" as const,
+        }],
+        predictions: analyticsEngine.analyzeDemand(salesHistory, locationData),
+        progress: null,
+      };
+    }
+
+    const planData = {
+      monthlyProfitTarget: activePlan.monthlyProfitTarget,
+      monthlyRevenueTarget: activePlan.monthlyRevenueTarget,
+      totalCosts: activePlan.totalCosts,
+      locationPlans: (activePlan.locationPlans as any[]) || [],
+    };
+
+    const insights = analyticsEngine.generateInsights(
+      salesHistory,
+      planData,
+      org?.subscriptionPlan || "free",
+      totalRouters
+    );
+
+    const predictions = analyticsEngine.analyzeDemand(salesHistory, locationData);
+    const progress = analyticsEngine.generateProgressReport(
+      {
+        name: activePlan.name,
+        monthlyRevenueTarget: activePlan.monthlyRevenueTarget,
+        locationPlans: planData.locationPlans,
+        activatedAt: activePlan.activatedAt,
+      },
+      salesHistory
+    );
+
+    return { insights, predictions, progress };
+  }
+
+  /**
+   * Get demand predictions for a specific location
+   */
+  async getDemandPredictions(resellerId: string, locationName?: string) {
+    const analyticsEngine = new AnalyticsEngine();
+
+    const vouchers = await prisma.voucher.findMany({
+      where: { organizationId: resellerId, status: "USED" },
+      include: { location: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+
+    const salesHistory: SalesData[] = vouchers.map((v) => ({
+      date: v.createdAt.toISOString().split("T")[0],
+      locationId: v.locationId || undefined,
+      locationName: v.location?.name || undefined,
+      voucherCount: 1,
+      revenue: 0,
+      customers: 1,
+    }));
+
+    const locations = await prisma.location.findMany({
+      where: { organizationId: resellerId },
+      include: { routers: { select: { id: true } } },
+    });
+
+    const locationData = locations
+      .filter((loc) => !locationName || loc.name === locationName)
+      .map((loc) => ({
+        name: loc.name,
+        routers: loc.routers.length,
+        customers: 10,
+      }));
+
+    return analyticsEngine.analyzeDemand(salesHistory, locationData);
+  }
+
+  /**
+   * Get progress report for active plan
+   */
+  async getProgressReport(resellerId: string) {
+    const analyticsEngine = new AnalyticsEngine();
+
+    const activePlan = await prisma.businessPlan.findFirst({
+      where: { resellerId, status: "ACTIVE" },
+      orderBy: { activatedAt: "desc" },
+    });
+
+    if (!activePlan) {
+      return null;
+    }
+
+    const vouchers = await prisma.voucher.findMany({
+      where: { organizationId: resellerId, status: "USED" },
+      include: { location: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 500,
+    });
+
+    const salesHistory: SalesData[] = vouchers.map((v) => ({
+      date: v.createdAt.toISOString().split("T")[0],
+      locationId: v.locationId || undefined,
+      locationName: v.location?.name || undefined,
+      voucherCount: 1,
+      revenue: 0,
+      customers: 1,
+    }));
+
+    return analyticsEngine.generateProgressReport(
+      {
+        name: activePlan.name,
+        monthlyRevenueTarget: activePlan.monthlyRevenueTarget,
+        locationPlans: (activePlan.locationPlans as any[]) || [],
+        activatedAt: activePlan.activatedAt,
+      },
+      salesHistory
+    );
   }
 }

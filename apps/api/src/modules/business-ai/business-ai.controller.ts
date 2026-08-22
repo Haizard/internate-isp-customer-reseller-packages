@@ -66,4 +66,35 @@ export class BusinessAIController {
       next(err);
     }
   }
+
+  async getInsights(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).userId;
+      const result = await service.getInsights(userId);
+      res.json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getDemandPredictions(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).userId;
+      const { location } = req.query;
+      const result = await service.getDemandPredictions(userId, location as string | undefined);
+      res.json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getProgressReport(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = (req as any).userId;
+      const result = await service.getProgressReport(userId);
+      res.json({ data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
 }

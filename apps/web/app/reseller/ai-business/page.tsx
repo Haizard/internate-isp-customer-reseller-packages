@@ -278,18 +278,26 @@ export default function AIBusinessPartnerPage() {
               </p>
             </div>
           </div>
-          {currentPlan && currentPlan.status !== "ACTIVE" && currentPlan.monthlyProfitTarget > 0 && (
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => applyPlan(currentPlan.id)}
-              className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
-              style={{
-                background: "linear-gradient(135deg, #00C853, #00E676)",
-                color: "white",
-              }}
+              onClick={() => router.push("/reseller/ai-business/insights")}
+              className="px-4 py-2 rounded-lg text-sm font-medium border border-[var(--border-subtle)] hover:bg-[var(--bg-surface)] transition-all"
             >
-              ✅ Apply Plan
+              📊 Insights
             </button>
-          )}
+            {currentPlan && currentPlan.status !== "ACTIVE" && currentPlan.monthlyProfitTarget > 0 && (
+              <button
+                onClick={() => applyPlan(currentPlan.id)}
+                className="px-4 py-2 rounded-lg text-sm font-semibold transition-all"
+                style={{
+                  background: "linear-gradient(135deg, #00C853, #00E676)",
+                  color: "white",
+                }}
+              >
+                ✅ Apply Plan
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Messages */}

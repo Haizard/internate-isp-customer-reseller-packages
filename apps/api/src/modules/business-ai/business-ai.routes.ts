@@ -13,5 +13,8 @@ router.get("/conversations/:planId", (req, res, next) => controller.getConversat
 router.delete("/conversations/:planId", (req, res, next) => controller.deleteConversation(req, res, next));
 router.post("/chat", (req, res, next) => controller.sendMessage(req, res, next));
 router.post("/plans/:planId/apply", (req, res, next) => controller.applyPlan(req, res, next));
+router.get("/insights", (req, res, next) => controller.getInsights(req, res, next));
+router.get("/predictions", (req, res, next) => controller.getDemandPredictions(req, res, next));
+router.get("/progress", (req, res, next) => controller.getProgressReport(req, res, next));
 
 export default router;
