@@ -17,7 +17,8 @@ export class VouchersController {
 
   async list(req: Request, res: Response, next: NextFunction) {
     try {
-      const vouchers = await service.list(req.orgIds ?? []);
+      const locationId = req.query.locationId as string | undefined;
+      const vouchers = await service.list(req.orgIds ?? [], locationId);
       res.json({ data: vouchers });
     } catch (err) {
       next(err);

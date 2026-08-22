@@ -5,6 +5,7 @@ export const createVoucherBatchSchema = z.object({
   dataGb: z.number().int().nonnegative().optional().nullable(),
   durationHours: z.number().int().nonnegative().optional().nullable(),
   expiresInDays: z.number().int().positive().optional(),
+  locationId: z.string().optional().nullable(),
 });
 
 export const updateVoucherStatusSchema = z.object({

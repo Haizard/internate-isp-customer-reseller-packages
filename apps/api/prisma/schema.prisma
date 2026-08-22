@@ -132,6 +132,7 @@ model Location {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id])
   routers        Router[]
+  vouchers       Voucher[]
 
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
@@ -252,6 +253,8 @@ model Voucher {
   code           String        @unique
   organizationId String
   organization   Organization  @relation(fields: [organizationId], references: [id])
+  locationId     String?       // optional: location-specific voucher batch
+  location       Location?     @relation(fields: [locationId], references: [id])
   dataGb         Int?
   durationHours  Int?
   status         VoucherStatus @default(UNUSED)
@@ -263,6 +266,7 @@ model Voucher {
   updatedByUserId String? @map("updated_by_user_id")
 
   @@index([organizationId, status])
+  @@index([locationId])
   @@map("vouchers")
 }
 

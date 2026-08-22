@@ -20,16 +20,24 @@ interface Voucher {
   durationHours: number | null;
   status: string;
   expiresAt: string | null;
+  location?: { id: string; name: string } | null;
+}
+
+interface Location {
+  id: string;
+  name: string;
 }
 
 export default function VouchersPage() {
-  const { data, loading, error, reload } = useApi<Voucher[]>("/vouchers");
+  const [locationFilter, setLocationFilter] = useState("");
+  const { data, loading, error, reload } = useApi<Voucher[]>(locationFilter ? `/vouchers?locationId=${locationFilter}` : "/vouchers");
+  const locations = useApi<Location[]>("/locations");
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ count: 5, dataGb: 5, durationHours: 0, expiresInDays: 3 });
+  const [form, setForm] = useState({ count: 5, dataGb: 5, durationHours: 0, expiresInDays: 3, locationId: "" });
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
-  if (loading) return <LoadingState />;
+  if (loading || locations.loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
   const vouchers = data ?? [];
 
@@ -41,6 +49,7 @@ export default function VouchersPage() {
         dataGb: form.dataGb > 0 ? form.dataGb : null,
         durationHours: form.durationHours > 0 ? form.durationHours : null,
         expiresInDays: form.expiresInDays > 0 ? form.expiresInDays : undefined,
+        locationId: form.locationId || undefined,
       });
       setOpen(false);
       reload();
@@ -77,6 +86,21 @@ export default function VouchersPage() {
         }
       />
 
+      {(locations.data ?? []).length > 0 && (
+        <div className="mb-4">
+          <select
+            className="h-[44px] px-3 rounded-md bg-white/70 border border-white/60 text-callout text-text-primary outline-none"
+            value={locationFilter}
+            onChange={(e) => setLocationFilter(e.target.value)}
+          >
+            <option value="">All locations</option>
+            {(locations.data ?? []).map((l) => (
+              <option key={l.id} value={l.id}>{l.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {vouchers.length === 0 ? (
         <EmptyState label="No vouchers yet" />
       ) : (
@@ -94,6 +118,7 @@ export default function VouchersPage() {
               </div>
               <div className="mt-2 flex items-center gap-3 text-footnote text-text-secondary">
                 <span>{v.dataGb ? `${v.dataGb} GB` : v.durationHours ? `${v.durationHours} hrs` : "Unlimited"}</span>
+                {v.location && <><span>·</span><span className="text-accent-purple">{v.location.name}</span></>}
                 <span>·</span>
                 <span>Expires {formatDate(v.expiresAt)}</span>
               </div>
@@ -110,6 +135,21 @@ export default function VouchersPage() {
 
       <Sheet open={open} onClose={() => setOpen(false)} title="Generate Vouchers">
         <div className="space-y-4">
+          {(locations.data ?? []).length > 0 && (
+            <div>
+              <label className="block text-footnote font-medium text-text-secondary mb-1.5">Assign to location (optional)</label>
+              <select
+                className="w-full h-[44px] px-4 rounded-md bg-white/60 border border-white/60 text-body outline-none focus:focus-ring"
+                value={form.locationId}
+                onChange={(e) => setForm({ ...form, locationId: e.target.value })}
+              >
+                <option value="">All locations (shared)</option>
+                {(locations.data ?? []).map((l) => (
+                  <option key={l.id} value={l.id}>{l.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <Field
             label="Number of vouchers"
             type="number"

@@ -71,4 +71,13 @@ export class OrganizationsController {
       next(err);
     }
   }
+
+  async locationStats(req: Request, res: Response, next: NextFunction) {
+    try {
+      const stats = await service.locationStats(req.auth!.organizationId);
+      res.json({ data: stats });
+    } catch (err) {
+      next(err);
+    }
+  }
 }

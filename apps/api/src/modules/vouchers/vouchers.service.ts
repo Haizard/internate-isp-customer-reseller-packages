@@ -25,6 +25,7 @@ export class VouchersService {
         data: {
           code: generateCode(),
           organizationId,
+          locationId: input.locationId ?? null,
           dataGb: input.dataGb ?? null,
           durationHours: input.durationHours ?? null,
           expiresAt,
@@ -47,9 +48,13 @@ export class VouchersService {
     return vouchers;
   }
 
-  async list(orgIds: string[]) {
+  async list(orgIds: string[], locationId?: string) {
     return prisma.voucher.findMany({
-      where: { organizationId: { in: orgIds } },
+      where: {
+        organizationId: { in: orgIds },
+        ...(locationId ? { locationId } : {}),
+      },
+      include: { location: { select: { id: true, name: true } } },
       orderBy: { createdAt: "desc" },
       take: 200,
     });

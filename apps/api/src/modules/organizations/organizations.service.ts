@@ -111,6 +111,51 @@ export class OrganizationsService {
     );
   }
 
+  async locationStats(organizationId: string) {
+    const locations = await prisma.location.findMany({
+      where: { organizationId },
+      include: {
+        routers: {
+          include: {
+            _count: { select: { customers: true } },
+            customers: {
+              where: { status: "ACTIVE", deletedAt: null },
+              include: { subscription: { include: { package: true } } },
+            },
+          },
+        },
+        vouchers: {
+          where: { status: "UNUSED" },
+          select: { id: true },
+        },
+      },
+    });
+
+    return locations.map((loc) => {
+      const totalRouters = loc.routers.length;
+      const activeRouters = loc.routers.filter((r) => r.status === "ACTIVE").length;
+      const totalCustomers = loc.routers.reduce((sum, r) => sum + r._count.customers, 0);
+      const activeCustomers = loc.routers.reduce((sum, r) => sum + r.customers.length, 0);
+      const mrrCents = loc.routers.reduce(
+        (sum, r) => sum + r.customers.reduce((s, c) => s + (c.subscription?.package?.priceCents ?? 0), 0),
+        0,
+      );
+      const unusedVouchers = loc.vouchers.length;
+
+      return {
+        id: loc.id,
+        name: loc.name,
+        address: loc.address,
+        totalRouters,
+        activeRouters,
+        totalCustomers,
+        activeCustomers,
+        mrrCents,
+        unusedVouchers,
+      };
+    });
+  }
+
   async updateBranding(organizationId: string, input: UpdateBrandingInput, actorUserId: string) {
     const org = await prisma.organization.findUnique({ where: { id: organizationId } });
     if (!org) throw new AppError(404, "Organization not found");

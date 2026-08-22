@@ -16,5 +16,6 @@ router.get("/resellers", roleGuard("PLATFORM_OWNER", "ISP_ADMIN"), controller.li
 router.post("/", roleGuard("PLATFORM_OWNER", "ISP_ADMIN"), controller.create);
 router.patch("/:id/status", roleGuard("PLATFORM_OWNER", "ISP_ADMIN"), controller.updateStatus);
 router.patch("/branding", roleGuard("RESELLER", "ISP_ADMIN"), controller.updateBranding);
+router.get("/location-stats", roleGuard("RESELLER", "ISP_ADMIN"), controller.locationStats);
 
 export default router;
