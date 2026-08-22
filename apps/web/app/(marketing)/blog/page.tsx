@@ -103,8 +103,13 @@ export default function BlogPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
+    // Show fallback data immediately so the page always has content
+    setPosts(SAMPLE_POSTS);
+    setCategories(SAMPLE_CATEGORIES);
+    setLoading(false);
+
+    // Try to load real data from API in the background
     async function load() {
-      setLoading(true);
       try {
         const [postsData, catsData] = await Promise.all([
           api.get<BlogPost[]>("/blog/posts").catch(() => []),
@@ -112,12 +117,11 @@ export default function BlogPage() {
         ]);
         const postsList = Array.isArray(postsData) ? postsData : [];
         const catsList = Array.isArray(catsData) ? catsData : [];
-        setPosts(postsList.length > 0 ? postsList : SAMPLE_POSTS);
-        setCategories(catsList.length > 0 ? catsList : SAMPLE_CATEGORIES);
+        if (postsList.length > 0) setPosts(postsList);
+        if (catsList.length > 0) setCategories(catsList);
       } catch {
-        // ignore
+        // Keep fallback data
       }
-      setLoading(false);
     }
     load();
   }, []);

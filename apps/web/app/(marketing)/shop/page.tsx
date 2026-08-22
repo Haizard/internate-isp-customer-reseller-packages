@@ -108,8 +108,13 @@ export default function ShopPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
+    // Show fallback data immediately so the page always has content
+    setProducts(SAMPLE_PRODUCTS);
+    setCategories(SAMPLE_CATEGORIES);
+    setLoading(false);
+
+    // Try to load real data from API in the background
     async function load() {
-      setLoading(true);
       try {
         const [prodsData, catsData] = await Promise.all([
           api.get<Product[]>("/products").catch(() => []),
@@ -117,12 +122,11 @@ export default function ShopPage() {
         ]);
         const prodsList = Array.isArray(prodsData) ? prodsData : [];
         const catsList = Array.isArray(catsData) ? catsData : [];
-        setProducts(prodsList.length > 0 ? prodsList : SAMPLE_PRODUCTS);
-        setCategories(catsList.length > 0 ? catsList : SAMPLE_CATEGORIES);
+        if (prodsList.length > 0) setProducts(prodsList);
+        if (catsList.length > 0) setCategories(catsList);
       } catch {
-        // ignore
+        // Keep fallback data
       }
-      setLoading(false);
     }
     load();
   }, []);
