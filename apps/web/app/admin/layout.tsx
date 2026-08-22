@@ -4,6 +4,8 @@ import { AppShell } from "@/components/layout/AppShell";
 const items = [
   { href: "/admin/dashboard", label: "Dashboard", icon: "dashboard" },
   { href: "/admin/isps", label: "ISPs", icon: "router" },
+  { href: "/admin/blog", label: "Blog", icon: "dashboard" },
+  { href: "/admin/products", label: "Products", icon: "dashboard" },
   { href: "/settings", label: "Settings", icon: "dashboard" },
 ];
 
