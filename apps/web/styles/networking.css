@@ -1,94 +1,101 @@
 /* ═══════════════════════════════════════════════════════════════
    Networking Background Template
-   Repeating circuit-board / network-node pattern used across
-   all marketing pages for instant visual identity.
+   Visible circuit-board grid + glowing nodes on all marketing pages.
    ═══════════════════════════════════════════════════════════════ */
 
-/* Base: circuit-board lines + glowing nodes */
+/* Light mode: visible blue grid lines + node dots */
 .bg-networking {
-  position: relative;
-}
-
-.bg-networking::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
   background-image:
     /* Horizontal grid lines */
     repeating-linear-gradient(
       0deg,
       transparent,
       transparent 59px,
-      rgba(10, 132, 255, 0.03) 59px,
-      rgba(10, 132, 255, 0.03) 60px
+      rgba(10, 132, 255, 0.06) 59px,
+      rgba(10, 132, 255, 0.06) 60px
     ),
     /* Vertical grid lines */
     repeating-linear-gradient(
       90deg,
       transparent,
       transparent 59px,
-      rgba(10, 132, 255, 0.03) 59px,
-      rgba(10, 132, 255, 0.03) 60px
+      rgba(10, 132, 255, 0.06) 59px,
+      rgba(10, 132, 255, 0.06) 60px
     );
 }
 
-/* Dark variant for hero sections */
-.bg-networking-dark {
-  position: relative;
+/* Node dots at grid intersections */
+.bg-networking-nodes {
+  background-image:
+    /* Horizontal grid lines */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 59px,
+      rgba(10, 132, 255, 0.06) 59px,
+      rgba(10, 132, 255, 0.06) 60px
+    ),
+    /* Vertical grid lines */
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 59px,
+      rgba(10, 132, 255, 0.06) 59px,
+      rgba(10, 132, 255, 0.06) 60px
+    ),
+    /* Glowing node dots at intersections */
+    radial-gradient(circle 3px at center, rgba(10, 132, 255, 0.15) 2px, transparent 3px);
+  background-size: 60px 60px, 60px 60px, 60px 60px;
 }
 
-.bg-networking-dark::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
+/* Dark mode overrides */
+[data-theme="dark"] .bg-networking,
+[data-theme="dark"] .bg-networking-nodes {
   background-image:
-    /* Horizontal lines */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 59px,
+      rgba(56, 139, 253, 0.08) 59px,
+      rgba(56, 139, 253, 0.08) 60px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 59px,
+      rgba(56, 139, 253, 0.08) 59px,
+      rgba(56, 139, 253, 0.08) 60px
+    ),
+    radial-gradient(circle 3px at center, rgba(56, 139, 253, 0.2) 2px, transparent 3px);
+  background-size: 60px 60px, 60px 60px, 60px 60px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Dark hero variant — for dark-background sections
+   ═══════════════════════════════════════════════════════════════ */
+.bg-networking-dark {
+  background-image:
     repeating-linear-gradient(
       0deg,
       transparent,
       transparent 79px,
-      rgba(10, 132, 255, 0.06) 79px,
-      rgba(10, 132, 255, 0.06) 80px
+      rgba(10, 132, 255, 0.1) 79px,
+      rgba(10, 132, 255, 0.1) 80px
     ),
-    /* Vertical lines */
     repeating-linear-gradient(
       90deg,
       transparent,
       transparent 79px,
-      rgba(10, 132, 255, 0.06) 79px,
-      rgba(10, 132, 255, 0.06) 80px
-    );
+      rgba(10, 132, 255, 0.1) 79px,
+      rgba(10, 132, 255, 0.1) 80px
+    ),
+    radial-gradient(circle 4px at center, rgba(10, 132, 255, 0.25) 2.5px, transparent 4px);
+  background-size: 80px 80px, 80px 80px, 80px 80px;
 }
 
-/* Network node dots at intersections (light mode) */
-.bg-networking-nodes::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image:
-    radial-gradient(circle 2px at center, rgba(10, 132, 255, 0.08) 1px, transparent 2px);
-  background-size: 60px 60px;
-}
-
-/* Network node dots at intersections (dark mode) */
-.bg-networking-dark::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image:
-    radial-gradient(circle 2.5px at center, rgba(10, 132, 255, 0.12) 1.5px, transparent 2.5px);
-  background-size: 80px 80px;
-}
-
-/* Animated pulse at a single node — use on hero */
+/* ═══════════════════════════════════════════════════════════════
+   Animated pulse node — for hero decorations
+   ═══════════════════════════════════════════════════════════════ */
 .bg-pulse-node {
   position: relative;
 }
@@ -100,18 +107,20 @@
   height: 8px;
   border-radius: 50%;
   background: var(--accent-blue);
-  box-shadow: 0 0 20px rgba(10, 132, 255, 0.4), 0 0 40px rgba(10, 132, 255, 0.2);
+  box-shadow: 0 0 20px rgba(10, 132, 255, 0.5), 0 0 40px rgba(10, 132, 255, 0.25);
   animation: pulseNode 3s ease-in-out infinite;
   pointer-events: none;
   z-index: 1;
 }
 
 @keyframes pulseNode {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.5); }
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.8); }
 }
 
-/* Data flow lines — animated dash offset */
+/* ═══════════════════════════════════════════════════════════════
+   Animated data flow line — horizontal dashed
+   ═══════════════════════════════════════════════════════════════ */
 .bg-dataflow {
   position: relative;
 }
@@ -122,22 +131,22 @@
   top: 50%;
   left: 0;
   right: 0;
-  height: 1px;
+  height: 2px;
   background: repeating-linear-gradient(
     90deg,
     var(--accent-blue) 0,
-    var(--accent-blue) 8px,
-    transparent 8px,
-    transparent 16px
+    var(--accent-blue) 10px,
+    transparent 10px,
+    transparent 20px
   );
-  background-size: 16px 1px;
-  animation: dataFlow 2s linear infinite;
-  opacity: 0.15;
+  background-size: 20px 2px;
+  animation: dataFlow 1.5s linear infinite;
+  opacity: 0.2;
   pointer-events: none;
   z-index: 0;
 }
 
 @keyframes dataFlow {
   0% { background-position: 0 0; }
-  100% { background-position: 16px 0; }
+  100% { background-position: 20px 0; }
 }
