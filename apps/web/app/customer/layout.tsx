@@ -8,6 +8,7 @@ const items = [
   { href: "/customer/devices", label: "Devices", icon: "eye" },
   { href: "/customer/usage", label: "Usage", icon: "chart" },
   { href: "/customer/billing", label: "Billing", icon: "credit" },
+  { href: "/settings", label: "Settings", icon: "dashboard" },
 ];
 
 export default function CustomerLayout({ children }: { children: ReactNode }) {

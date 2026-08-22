@@ -4,7 +4,7 @@ import { prisma } from "../../prisma/client";
 import { config } from "../../config";
 import { AppError } from "../../middleware/errorHandler";
 import type { AuthUser } from "../../middleware/authGuard";
-import type { LoginInput, RegisterInput } from "./auth.dto";
+import type { ChangePasswordInput, LoginInput, RegisterInput } from "./auth.dto";
 
 function signAccess(user: AuthUser): string {
   return jwt.sign(user, config.jwt.accessSecret, {
@@ -127,5 +127,28 @@ export class AuthService {
     });
     if (!user) throw new AppError(404, "User not found");
     return user;
+  }
+
+  async changePassword(userId: string, input: ChangePasswordInput) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new AppError(404, "User not found");
+
+    const valid = await bcrypt.compare(input.currentPassword, user.passwordHash);
+    if (!valid) throw new AppError(401, "Current password is incorrect");
+
+    const passwordHash = await bcrypt.hash(input.newPassword, 10);
+    await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
+
+    await prisma.auditLog.create({
+      data: {
+        actorUserId: userId,
+        action: "UPDATE",
+        entityType: "User",
+        entityId: userId,
+        afterJson: { action: "password_changed" },
+      },
+    });
+
+    return { success: true };
   }
 }

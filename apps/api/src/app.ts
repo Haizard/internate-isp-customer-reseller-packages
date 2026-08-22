@@ -15,6 +15,7 @@ import ticketRoutes from "./modules/tickets/tickets.routes";
 import notificationRoutes from "./modules/notifications/notifications.routes";
 import cronRoutes from "./modules/cron/cron.routes";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
+import { authRateLimit, apiRateLimit } from "./middleware/rateLimit";
 import { config } from "./config";
 
 const app = express();
@@ -26,19 +27,19 @@ app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/organizations", organizationRoutes);
-app.use("/api/v1/users", userRoutes);
-app.use("/api/v1/locations", locationRoutes);
-app.use("/api/v1/routers", routerRoutes);
-app.use("/api/v1/customers", customerRoutes);
-app.use("/api/v1/packages", packageRoutes);
-app.use("/api/v1/vouchers", voucherRoutes);
-app.use("/api/v1/reports", reportRoutes);
-app.use("/api/v1/router-adapters", routerAdapterRoutes);
-app.use("/api/v1/hotspot", hotspotRoutes);
-app.use("/api/v1/tickets", ticketRoutes);
-app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/auth", authRateLimit, authRoutes);
+app.use("/api/v1/organizations", apiRateLimit, organizationRoutes);
+app.use("/api/v1/users", apiRateLimit, userRoutes);
+app.use("/api/v1/locations", apiRateLimit, locationRoutes);
+app.use("/api/v1/routers", apiRateLimit, routerRoutes);
+app.use("/api/v1/customers", apiRateLimit, customerRoutes);
+app.use("/api/v1/packages", apiRateLimit, packageRoutes);
+app.use("/api/v1/vouchers", apiRateLimit, voucherRoutes);
+app.use("/api/v1/reports", apiRateLimit, reportRoutes);
+app.use("/api/v1/router-adapters", apiRateLimit, routerAdapterRoutes);
+app.use("/api/v1/hotspot", apiRateLimit, hotspotRoutes);
+app.use("/api/v1/tickets", apiRateLimit, ticketRoutes);
+app.use("/api/v1/notifications", apiRateLimit, notificationRoutes);
 app.use("/api/v1/cron", cronRoutes);
 
 app.use(notFoundHandler);

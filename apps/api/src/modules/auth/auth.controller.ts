@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { AuthService } from "./auth.service";
-import { loginSchema, registerSchema } from "./auth.dto";
+import { changePasswordSchema, loginSchema, registerSchema } from "./auth.dto";
 
 const authService = new AuthService();
 
@@ -43,6 +43,16 @@ export class AuthController {
     try {
       const user = await authService.me(req.auth!.id);
       res.json({ data: user });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async changePassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const input = changePasswordSchema.parse(req.body);
+      const result = await authService.changePassword(req.auth!.id, input);
+      res.json({ data: result });
     } catch (err) {
       next(err);
     }

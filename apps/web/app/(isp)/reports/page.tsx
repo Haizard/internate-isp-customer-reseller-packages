@@ -10,6 +10,22 @@ import { formatCents } from "@/lib/format";
 import { BarChart } from "@/components/charts/BarChart";
 import { Button } from "@/components/ui/Button";
 
+function downloadCsv(filename: string, rows: Record<string, unknown>[]) {
+  if (rows.length === 0) return;
+  const headers = Object.keys(rows[0]);
+  const csv = [
+    headers.join(","),
+    ...rows.map((row) => headers.map((h) => String(row[h] ?? "").replace(/"/g, '""')).join(",")),
+  ].join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 interface ResellerSummary {
   id: string;
   name: string;
@@ -63,7 +79,18 @@ export default function ReportsPage() {
 
   return (
     <div>
-      <PageHeader title="Reports" subtitle="Customers per reseller & package popularity" />
+      <PageHeader
+        title="Reports"
+        subtitle="Customers per reseller & package popularity"
+        action={
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => downloadCsv("resellers.csv", (resellers.data ?? []).map((r) => ({ name: r.name, status: r.status, customers: r.customers, activeCustomers: r.activeCustomers, locations: r.locations })))}>
+              <Icon name="chart" size={16} />
+              <span className="hidden sm:inline">Export CSV</span>
+            </Button>
+          </div>
+        }
+      />
 
       <Card className="p-5 mb-4">
         <div className="flex items-center gap-2 mb-4">
@@ -83,9 +110,12 @@ export default function ReportsPage() {
 
       {resellers.data && resellers.data.length > 0 ? (
         <Card className="p-1">
-          <div className="px-4 pt-3 pb-1">
-            <h2 className="text-title-3 font-semibold">Customers per Reseller</h2>
-            <p className="text-footnote text-text-tertiary">{totalCustomers} total customers</p>
+          <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+            <div>
+              <h2 className="text-title-3 font-semibold">Customers per Reseller</h2>
+              <p className="text-footnote text-text-tertiary">{totalCustomers} total customers</p>
+            </div>
+            <Button variant="ghost" onClick={() => downloadCsv("resellers.csv", (resellers.data ?? []).map((r) => ({ name: r.name, status: r.status, customers: r.customers, activeCustomers: r.activeCustomers, locations: r.locations })))}>Export</Button>
           </div>
           {resellers.data.map((r, i) => (
             <div key={r.id} className={i > 0 ? "hairline" : ""}>
@@ -106,7 +136,10 @@ export default function ReportsPage() {
       )}
 
       <Card className="p-1 mt-4">
-        <div className="px-4 pt-3 pb-1"><h2 className="text-title-3 font-semibold">Service requests</h2></div>
+        <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+          <h2 className="text-title-3 font-semibold">Service requests</h2>
+          <Button variant="ghost" onClick={() => downloadCsv("tickets.csv", (requests.data ?? []).map((r) => ({ subject: r.subject, status: r.status, priority: r.priority, requester: r.requester?.name ?? "", createdAt: r.createdAt })))}>Export</Button>
+        </div>
         {(requests.data ?? []).map((request, i) => (
           <div key={request.id} className={i > 0 ? "hairline" : ""}>
             <div className="px-4 py-3 flex items-center gap-3">
@@ -118,7 +151,10 @@ export default function ReportsPage() {
       </Card>
 
       <Card className="p-1 mt-4">
-        <div className="px-4 pt-3 pb-1"><h2 className="text-title-3 font-semibold">Recent activity</h2></div>
+        <div className="px-4 pt-3 pb-1 flex items-center justify-between">
+          <h2 className="text-title-3 font-semibold">Recent activity</h2>
+          <Button variant="ghost" onClick={() => downloadCsv("audit-logs.csv", (auditLogs.data ?? []).map((l) => ({ action: l.action, entityType: l.entityType, entityId: l.entityId, createdAt: l.createdAt })))}>Export</Button>
+        </div>
         {(auditLogs.data ?? []).slice(0, 10).map((log, i) => (
           <div key={log.id} className={i > 0 ? "hairline" : ""}><div className="px-4 py-3"><p className="text-body font-medium">{log.action} {log.entityType}</p><p className="text-footnote text-text-secondary">{log.entityId} · {new Date(log.createdAt).toLocaleString()}</p></div></div>
         ))}

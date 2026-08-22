@@ -7,6 +7,7 @@ const items = [
   { href: "/reseller/routers", label: "Routers", icon: "router" },
   { href: "/reseller/customers", label: "Customers", icon: "users" },
   { href: "/reseller/vouchers", label: "Vouchers", icon: "ticket" },
+  { href: "/settings", label: "Settings", icon: "dashboard" },
 ];
 
 export default function ResellerLayout({ children }: { children: ReactNode }) {

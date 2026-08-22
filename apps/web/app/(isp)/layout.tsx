@@ -8,6 +8,8 @@ const items = [
   { href: "/customers", label: "Customers", icon: "users" },
   { href: "/packages", label: "Packages", icon: "box" },
   { href: "/reports", label: "Reports", icon: "chart" },
+  { href: "/audit", label: "Audit Log", icon: "chart" },
+  { href: "/settings", label: "Settings", icon: "dashboard" },
 ];
 
 export default function IsLayout({ children }: { children: ReactNode }) {

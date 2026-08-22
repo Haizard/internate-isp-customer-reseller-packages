@@ -4,6 +4,7 @@ import { AppShell } from "@/components/layout/AppShell";
 const items = [
   { href: "/support/dashboard", label: "Dashboard", icon: "dashboard" },
   { href: "/support/tickets", label: "Tickets", icon: "ticket" },
+  { href: "/settings", label: "Settings", icon: "dashboard" },
 ];
 
 export default function SupportLayout({ children }: { children: ReactNode }) {

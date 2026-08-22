@@ -4,6 +4,7 @@ import { AppShell } from "@/components/layout/AppShell";
 const items = [
   { href: "/admin/dashboard", label: "Dashboard", icon: "dashboard" },
   { href: "/admin/isps", label: "ISPs", icon: "router" },
+  { href: "/settings", label: "Settings", icon: "dashboard" },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
