@@ -1,0 +1,285 @@
+import { prisma } from "../../prisma/client";
+import { AppError } from "../../middleware/errorHandler";
+import { AIEngine, type ConversationState } from "./ai-engine";
+
+const aiEngine = new AIEngine();
+
+export interface CreateConversationInput {
+  name?: string;
+}
+
+export interface SendMessageInput {
+  conversationId: string;
+  message: string;
+}
+
+export interface UpdatePlanInput {
+  planId: string;
+  name?: string;
+  monthlyProfitTarget?: number;
+  locationPlans?: any[];
+}
+
+export class BusinessAIService {
+  /**
+   * Start a new AI conversation
+   */
+  async startConversation(resellerId: string, input?: CreateConversationInput) {
+    const plan = await prisma.businessPlan.create({
+      data: {
+        resellerId,
+        name: input?.name || `Business Plan - ${new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}`,
+        monthlyProfitTarget: 0,
+        monthlyRevenueTarget: 0,
+        totalCosts: 0,
+        costs: {},
+        locationPlans: [],
+        status: "DRAFT",
+      },
+    });
+
+    // Initial state
+    const state: ConversationState = { step: 0, answers: {}, planGenerated: false };
+
+    // Save state as the first message metadata
+    await prisma.businessPlanMessage.create({
+      data: {
+        planId: plan.id,
+        role: "system",
+        content: JSON.stringify(state),
+        metadata: { type: "state_init" },
+      },
+    });
+
+    // Get the first AI question
+    const { response, newState } = aiEngine.processMessage(state, "");
+
+    // Save AI greeting
+    await prisma.businessPlanMessage.create({
+      data: {
+        planId: plan.id,
+        role: "assistant",
+        content: response.message + (response.question ? "\n\n" + response.question : ""),
+        metadata: { type: response.type, options: response.options || [] },
+      },
+    });
+
+    // Save updated state
+    await prisma.businessPlanMessage.create({
+      data: {
+        planId: plan.id,
+        role: "system",
+        content: JSON.stringify(newState),
+        metadata: { type: "state_update" },
+      },
+    });
+
+    return {
+      plan,
+      message: response.message + (response.question ? "\n\n" + response.question : ""),
+      options: response.options,
+      type: response.type,
+    };
+  }
+
+  /**
+   * Send a message in an existing conversation
+   */
+  async sendMessage(resellerId: string, input: SendMessageInput) {
+    // Verify plan belongs to reseller
+    const plan = await prisma.businessPlan.findFirst({
+      where: { id: input.conversationId, resellerId },
+    });
+    if (!plan) throw new AppError(404, "Conversation not found");
+
+    // Get last state from messages
+    const lastStateMsg = await prisma.businessPlanMessage.findFirst({
+      where: { planId: plan.id, role: "system" },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const state: ConversationState = lastStateMsg
+      ? JSON.parse(lastStateMsg.content)
+      : { step: 0, answers: {}, planGenerated: false };
+
+    // Save user message
+    await prisma.businessPlanMessage.create({
+      data: {
+        planId: plan.id,
+        role: "user",
+        content: input.message,
+        metadata: { type: "user_input" },
+      },
+    });
+
+    // Process with AI
+    const { response, newState } = aiEngine.processMessage(state, input.message);
+
+    // Save AI response
+    await prisma.businessPlanMessage.create({
+      data: {
+        planId: plan.id,
+        role: "assistant",
+        content: response.message,
+        metadata: {
+          type: response.type,
+          options: response.options || [],
+          action: (response.metadata as any)?.action || null,
+          plan: response.metadata && response.type === "plan" ? JSON.parse(JSON.stringify(response.metadata)) : null,
+        },
+      },
+    });
+
+    // Save updated state
+    await prisma.businessPlanMessage.create({
+      data: {
+        planId: plan.id,
+        role: "system",
+        content: JSON.stringify(newState),
+        metadata: { type: "state_update" },
+      },
+    });
+
+    // If plan was generated, update the plan record
+    if (response.type === "plan" && response.metadata) {
+      const planData = response.metadata as any;
+      await prisma.businessPlan.update({
+        where: { id: plan.id },
+        data: {
+          name: plan.name,
+          monthlyProfitTarget: planData.profitTarget || 0,
+          monthlyRevenueTarget: planData.revenueTarget || 0,
+          totalCosts: planData.totalCosts || 0,
+          costs: planData.costs || {},
+          locationPlans: planData.locationPlans || [],
+        },
+      });
+    }
+
+    return {
+      message: response.message,
+      options: response.options,
+      type: response.type,
+      metadata: response.metadata,
+    };
+  }
+
+  /**
+   * Apply a plan — create voucher batches based on the plan
+   */
+  async applyPlan(resellerId: string, planId: string) {
+    const plan = await prisma.businessPlan.findFirst({
+      where: { id: planId, resellerId },
+    });
+    if (!plan) throw new AppError(404, "Plan not found");
+
+    if (plan.status === "ACTIVE") {
+      throw new AppError(400, "Plan is already active");
+    }
+
+    // Mark plan as active
+    await prisma.businessPlan.update({
+      where: { id: planId },
+      data: {
+        status: "ACTIVE",
+        activatedAt: new Date(),
+      },
+    });
+
+    // Get organization for the reseller
+    const org = await prisma.organization.findFirst({
+      where: { id: resellerId },
+    });
+
+    // Create voucher batches for each location plan
+    const locationPlans = plan.locationPlans as any[];
+    const createdPackages: any[] = [];
+
+    for (const locPlan of locationPlans) {
+      // Create packages for this location
+      for (const pkg of locPlan.packages || []) {
+        // Check if package already exists
+        const existingPkg = await prisma.package.findFirst({
+          where: {
+            organizationId: resellerId,
+            name: pkg.name,
+          },
+        });
+
+        if (!existingPkg) {
+          const createdPkg = await prisma.package.create({
+            data: {
+              organizationId: resellerId,
+              name: pkg.name,
+              priceCents: pkg.price || 0,
+              speedMbps: 10,
+              dataCapGb: null,
+            },
+          });
+          createdPackages.push(createdPkg);
+        }
+      }
+    }
+
+    return {
+      plan,
+      createdPackages,
+      message: `Plan "${plan.name}" is now active! ${createdPackages.length} packages created across ${locationPlans.length} locations.`,
+    };
+  }
+
+  /**
+   * List all conversations for a reseller
+   */
+  async listConversations(resellerId: string) {
+    return prisma.businessPlan.findMany({
+      where: { resellerId },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    });
+  }
+
+  /**
+   * Get a single conversation with messages
+   */
+  async getConversation(resellerId: string, planId: string) {
+    const plan = await prisma.businessPlan.findFirst({
+      where: { id: planId, resellerId },
+    });
+    if (!plan) throw new AppError(404, "Conversation not found");
+
+    const messages = await prisma.businessPlanMessage.findMany({
+      where: { planId },
+      orderBy: { createdAt: "asc" },
+    });
+
+    // Filter out system messages for the UI
+    const visibleMessages = messages
+      .filter((m) => m.role !== "system")
+      .map((m) => ({
+        id: m.id,
+        role: m.role,
+        content: m.content,
+        metadata: m.metadata,
+        createdAt: m.createdAt,
+      }));
+
+    return { plan, messages: visibleMessages };
+  }
+
+  /**
+   * Delete a conversation
+   */
+  async deleteConversation(resellerId: string, planId: string) {
+    const plan = await prisma.businessPlan.findFirst({
+      where: { id: planId, resellerId },
+    });
+    if (!plan) throw new AppError(404, "Conversation not found");
+
+    // Delete messages first
+    await prisma.businessPlanMessage.deleteMany({ where: { planId } });
+    await prisma.businessPlan.delete({ where: { id: planId } });
+
+    return { message: "Conversation deleted" };
+  }
+}

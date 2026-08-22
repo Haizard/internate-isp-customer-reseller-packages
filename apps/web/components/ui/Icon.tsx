@@ -28,6 +28,7 @@ const paths: Record<string, string> = {
   qr: "M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z",
   sun: "M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42",
   moon: "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z",
+  ai: "M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93L12 22M8 6a4 4 0 0 0 4 4M12 22l-1-7h2l-1 7zM4.93 12.93a4 4 0 0 0 1.07 1.07M19.07 12.93a4 4 0 0 1-1.07 1.07",
 };
 
 export type IconTone = "blue" | "green" | "orange" | "red" | "purple" | "teal" | "gray";

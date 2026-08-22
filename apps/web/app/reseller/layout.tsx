@@ -9,6 +9,7 @@ const items = [
   { href: "/reseller/locations", label: "Locations", icon: "location" },
   { href: "/reseller/routers", label: "Routers", icon: "router" },
   { href: "/reseller/subscription", label: "Subscription", icon: "credit" },
+  { href: "/reseller/ai-business", label: "AI Business Partner", icon: "ai" },
   { href: "/reseller/branding", label: "Branding", icon: "edit" },
   { href: "/settings", label: "Settings", icon: "dashboard" },
 ];
