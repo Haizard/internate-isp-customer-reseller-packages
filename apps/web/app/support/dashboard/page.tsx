@@ -34,8 +34,8 @@ interface Ticket {
 
 export default function SupportDashboard() {
   const router = useRouter();
-  const stats = useApi<DashboardStats>("/tickets/dashboard");
-  const tickets = useApi<Ticket[]>("/tickets");
+  const stats = useApi<DashboardStats>("/tickets/dashboard", [], 30_000);
+  const tickets = useApi<Ticket[]>("/tickets", [], 30_000);
 
   if (stats.loading || tickets.loading) return <LoadingState />;
   if (stats.error || tickets.error)

@@ -13,6 +13,7 @@ import routerAdapterRoutes from "./modules/routerAdapters/routerAdapters.routes"
 import hotspotRoutes from "./modules/hotspot/hotspot.routes";
 import ticketRoutes from "./modules/tickets/tickets.routes";
 import notificationRoutes from "./modules/notifications/notifications.routes";
+import cronRoutes from "./modules/cron/cron.routes";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
 import { config } from "./config";
 
@@ -38,6 +39,7 @@ app.use("/api/v1/router-adapters", routerAdapterRoutes);
 app.use("/api/v1/hotspot", hotspotRoutes);
 app.use("/api/v1/tickets", ticketRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/cron", cronRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

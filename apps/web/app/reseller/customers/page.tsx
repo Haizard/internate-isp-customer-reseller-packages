@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useApi } from "@/lib/useApi";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -36,6 +36,7 @@ export default function CustomersPage() {
   const { data, loading, error, reload } = useApi<Customer[]>("/customers");
   const routers = useApi<Router[]>("/routers");
   const packages = useApi<Pkg[]>("/packages");
+  const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", phone: "", email: "", password: "", routerId: "", packageId: "", status: "ACTIVE" });
@@ -45,6 +46,17 @@ export default function CustomersPage() {
   if (loading || routers.loading || packages.loading) return <LoadingState />;
   if (error) return <ErrorState message={error} onRetry={reload} />;
   const customers = data ?? [];
+
+  const filtered = useMemo(() => {
+    if (!search) return customers;
+    const q = search.toLowerCase();
+    return customers.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        c.phone.includes(q) ||
+        c.router?.name?.toLowerCase().includes(q),
+    );
+  }, [customers, search]);
 
   async function createCustomer() {
     setBusy(true);
@@ -84,11 +96,21 @@ export default function CustomersPage() {
         }
       />
 
-      {customers.length === 0 ? (
-        <EmptyState label="No customers yet" />
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search by name, phone, or router…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full h-[44px] px-4 rounded-md bg-white/70 border border-white/60 text-callout text-text-primary outline-none focus:border-accent-blue focus:ring-4 focus:ring-accent-blue/15"
+        />
+      </div>
+
+      {filtered.length === 0 ? (
+        <EmptyState label={search ? "No customers match your search" : "No customers yet"} />
       ) : (
         <Card className="p-1">
-          {customers.map((c, i) => (
+          {filtered.map((c, i) => (
             <div key={c.id} className={i > 0 ? "hairline" : ""}>
               <ListRow
                 title={c.name}

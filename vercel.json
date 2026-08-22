@@ -11,5 +11,11 @@
       "destination": "/api"
     }
   ],
+  "crons": [
+    {
+      "path": "/api/v1/cron/check-expirations",
+      "schedule": "0 * * * *"
+    }
+  ],
   "cleanUrls": true
 }

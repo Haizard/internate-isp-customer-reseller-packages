@@ -71,6 +71,7 @@ function SupportTicketsWorkspace() {
 
   const [statusFilter, setStatusFilter] = useState("");
   const [priorityFilter, setPriorityFilter] = useState("");
+  const [search, setSearch] = useState("");
   const [detailId, setDetailId] = useState<string | null>(searchParams?.get("id") ?? null);
   const [detail, setDetail] = useState<Ticket | null>(null);
   const [newOpen, setNewOpen] = useState(false);
@@ -89,9 +90,18 @@ function SupportTicketsWorkspace() {
     return (tickets.data ?? []).filter((t) => {
       if (statusFilter && t.status !== statusFilter) return false;
       if (priorityFilter && t.priority !== priorityFilter) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        return (
+          t.subject.toLowerCase().includes(q) ||
+          (t.description ?? "").toLowerCase().includes(q) ||
+          (t.assignee?.name ?? "").toLowerCase().includes(q) ||
+          (t.requester?.name ?? "").toLowerCase().includes(q)
+        );
+      }
       return true;
     });
-  }, [tickets.data, statusFilter, priorityFilter]);
+  }, [tickets.data, statusFilter, priorityFilter, search]);
 
   useEffect(() => {
     if (detailId) {
@@ -171,6 +181,15 @@ function SupportTicketsWorkspace() {
       />
 
       <div className="flex gap-2 mb-4 flex-wrap">
+        <div className="flex-1 min-w-[200px]">
+          <input
+            type="text"
+            placeholder="Search tickets…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full h-[44px] px-4 rounded-md bg-white/70 border border-white/60 text-callout text-text-primary outline-none focus:border-accent-blue focus:ring-4 focus:ring-accent-blue/15"
+          />
+        </div>
         <select
           className="h-[44px] px-3 rounded-md bg-white/70 border border-white/60 text-callout text-text-primary outline-none"
           value={statusFilter}

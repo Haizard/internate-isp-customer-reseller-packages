@@ -5,6 +5,7 @@ const items = [
   { href: "/dashboard", label: "Dashboard", icon: "dashboard" },
   { href: "/routers", label: "Routers", icon: "router" },
   { href: "/resellers", label: "Resellers", icon: "users" },
+  { href: "/customers", label: "Customers", icon: "users" },
   { href: "/packages", label: "Packages", icon: "box" },
   { href: "/reports", label: "Reports", icon: "chart" },
 ];

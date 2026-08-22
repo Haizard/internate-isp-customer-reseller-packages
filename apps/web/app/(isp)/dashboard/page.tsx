@@ -28,8 +28,8 @@ interface Reseller {
 }
 
 export default function IsDashboard() {
-  const overview = useApi<Overview>("/organizations/overview");
-  const resellers = useApi<Reseller[]>("/organizations/resellers");
+  const overview = useApi<Overview>("/organizations/overview", [], 30_000);
+  const resellers = useApi<Reseller[]>("/organizations/resellers", [], 30_000);
 
   if (overview.loading || resellers.loading) return <LoadingState />;
   if (overview.error || resellers.error) return <ErrorState message={overview.error ?? resellers.error ?? "Error"} />;

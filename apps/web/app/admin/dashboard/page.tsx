@@ -21,7 +21,7 @@ interface PlatformOverview {
 }
 
 export default function AdminDashboard() {
-  const overview = useApi<PlatformOverview>("/organizations/platform-overview");
+  const overview = useApi<PlatformOverview>("/organizations/platform-overview", [], 30_000);
 
   if (overview.loading) return <LoadingState />;
   if (overview.error || !overview.data) {
