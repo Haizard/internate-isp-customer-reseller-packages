@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
+import Home from "./(marketing)/page";
 
-export default function Home() {
-  redirect("/login");
-}
+export default Home;
