@@ -42,8 +42,12 @@ function getProductImage(product: Product): string {
 /* Sample data when DB is empty */
 const SAMPLE_CATEGORIES: ProductCategory[] = [
   { id: "pc1", name: "Entry-Level", slug: "entry-level", _count: { products: 1 } },
+  { id: "pc1a", name: "Indoor Routers", slug: "indoor-routers", _count: { products: 0 } },
+  { id: "pc1b", name: "Outdoor Routers", slug: "outdoor-routers", _count: { products: 0 } },
   { id: "pc2", name: "Mid-Range", slug: "mid-range", _count: { products: 1 } },
+  { id: "pc2a", name: "PoE Routers", slug: "poe-routers", _count: { products: 0 } },
   { id: "pc3", name: "Enterprise", slug: "enterprise", _count: { products: 2 } },
+  { id: "pc4", name: "Accessories", slug: "accessories", _count: { products: 0 } },
 ];
 
 const SAMPLE_PRODUCTS: Product[] = [

@@ -36,8 +36,12 @@ const DEFAULT_COVER = "https://images.unsplash.com/photo-1558494949-ef010cbdcc31
 /* Sample data when DB is empty */
 const SAMPLE_CATEGORIES: BlogCategory[] = [
   { id: "sc1", name: "Getting Started", slug: "getting-started", _count: { posts: 1 } },
+  { id: "sc1a", name: "Quick Setup", slug: "quick-setup", _count: { posts: 0 } },
   { id: "sc2", name: "MikroTik", slug: "mikrotik", _count: { posts: 1 } },
+  { id: "sc2a", name: "RouterOS Basics", slug: "routeros-basics", _count: { posts: 0 } },
+  { id: "sc2b", name: "Hotspot Setup", slug: "hotspot-setup", _count: { posts: 0 } },
   { id: "sc3", name: "Reseller Tips", slug: "reseller-tips", _count: { posts: 1 } },
+  { id: "sc3a", name: "Revenue Growth", slug: "revenue-growth", _count: { posts: 0 } },
   { id: "sc4", name: "Network Security", slug: "network-security", _count: { posts: 1 } },
 ];
 
