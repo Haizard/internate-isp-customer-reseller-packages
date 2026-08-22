@@ -1,0 +1,143 @@
+/* ═══════════════════════════════════════════════════════════════
+   Networking Background Template
+   Repeating circuit-board / network-node pattern used across
+   all marketing pages for instant visual identity.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Base: circuit-board lines + glowing nodes */
+.bg-networking {
+  position: relative;
+}
+
+.bg-networking::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    /* Horizontal grid lines */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 59px,
+      rgba(10, 132, 255, 0.03) 59px,
+      rgba(10, 132, 255, 0.03) 60px
+    ),
+    /* Vertical grid lines */
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 59px,
+      rgba(10, 132, 255, 0.03) 59px,
+      rgba(10, 132, 255, 0.03) 60px
+    );
+}
+
+/* Dark variant for hero sections */
+.bg-networking-dark {
+  position: relative;
+}
+
+.bg-networking-dark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    /* Horizontal lines */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 79px,
+      rgba(10, 132, 255, 0.06) 79px,
+      rgba(10, 132, 255, 0.06) 80px
+    ),
+    /* Vertical lines */
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 79px,
+      rgba(10, 132, 255, 0.06) 79px,
+      rgba(10, 132, 255, 0.06) 80px
+    );
+}
+
+/* Network node dots at intersections (light mode) */
+.bg-networking-nodes::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle 2px at center, rgba(10, 132, 255, 0.08) 1px, transparent 2px);
+  background-size: 60px 60px;
+}
+
+/* Network node dots at intersections (dark mode) */
+.bg-networking-dark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle 2.5px at center, rgba(10, 132, 255, 0.12) 1.5px, transparent 2.5px);
+  background-size: 80px 80px;
+}
+
+/* Animated pulse at a single node — use on hero */
+.bg-pulse-node {
+  position: relative;
+}
+
+.bg-pulse-node::before {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  box-shadow: 0 0 20px rgba(10, 132, 255, 0.4), 0 0 40px rgba(10, 132, 255, 0.2);
+  animation: pulseNode 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+@keyframes pulseNode {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.5); }
+}
+
+/* Data flow lines — animated dash offset */
+.bg-dataflow {
+  position: relative;
+}
+
+.bg-dataflow::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--accent-blue) 0,
+    var(--accent-blue) 8px,
+    transparent 8px,
+    transparent 16px
+  );
+  background-size: 16px 1px;
+  animation: dataFlow 2s linear infinite;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes dataFlow {
+  0% { background-position: 0 0; }
+  100% { background-position: 16px 0; }
+}

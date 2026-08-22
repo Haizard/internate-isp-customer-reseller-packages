@@ -27,12 +27,70 @@ interface BlogCategory {
 /* Fallback cover images by category */
 const COVER_MAP: Record<string, string> = {
   "mikrotik": "https://images.unsplash.com/photo-1580894742597-87bc870ddb17?w=600&q=80",
-  "tutorial": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80",
-  "networking": "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=600&q=80",
-  "firmware": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=600&q=80",
-  "getting-started": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&q=80",
+  "getting-started": "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=600&q=80",
+  "reseller-tips": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&q=80",
+  "network-security": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&q=80",
 };
 const DEFAULT_COVER = "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&q=80";
+
+/* Sample data when DB is empty */
+const SAMPLE_CATEGORIES: BlogCategory[] = [
+  { id: "sc1", name: "Getting Started", slug: "getting-started", _count: { posts: 1 } },
+  { id: "sc2", name: "MikroTik", slug: "mikrotik", _count: { posts: 1 } },
+  { id: "sc3", name: "Reseller Tips", slug: "reseller-tips", _count: { posts: 1 } },
+  { id: "sc4", name: "Network Security", slug: "network-security", _count: { posts: 1 } },
+];
+
+const SAMPLE_POSTS: BlogPost[] = [
+  {
+    id: "sp1",
+    title: "How to Set Up Your First WiFi Hotspot with NetMaster",
+    slug: "setup-first-wifi-hotspot-netmaster",
+    excerpt: "A complete step-by-step guide to setting up your first WiFi hotspot and selling vouchers in under 30 minutes.",
+    coverImage: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=800&q=80",
+    published: true,
+    author: "NetMaster Team",
+    tags: "getting started,wifi hotspot,voucher",
+    category: { name: "Getting Started", slug: "getting-started" },
+    createdAt: "2026-08-20T10:00:00Z",
+  },
+  {
+    id: "sp2",
+    title: "MikroTik RouterOS v7: The Complete Beginner Guide",
+    slug: "mikrotik-routeros-v7-beginner-guide",
+    excerpt: "Understand MikroTik RouterOS v7 — from WinBox to hotspots, queues, and firewall rules.",
+    coverImage: "https://images.unsplash.com/photo-1580894742597-87bc870ddb17?w=800&q=80",
+    published: true,
+    author: "NetMaster Team",
+    tags: "mikrotik,routeros,v7,beginner",
+    category: { name: "MikroTik", slug: "mikrotik" },
+    createdAt: "2026-08-18T10:00:00Z",
+  },
+  {
+    id: "sp3",
+    title: "5 Pricing Strategies That Triple Your Reseller Revenue",
+    slug: "pricing-strategies-triple-reseller-revenue",
+    excerpt: "Proven pricing strategies that WiFi resellers use to maximize revenue.",
+    coverImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80",
+    published: true,
+    author: "NetMaster Team",
+    tags: "pricing,revenue,strategy,reseller",
+    category: { name: "Reseller Tips", slug: "reseller-tips" },
+    createdAt: "2026-08-15T10:00:00Z",
+  },
+  {
+    id: "sp4",
+    title: "How to Secure Your WiFi Network: A Reseller's Guide",
+    slug: "secure-wifi-network-resellers-guide",
+    excerpt: "Essential security measures every WiFi reseller must implement.",
+    coverImage: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80",
+    published: true,
+    author: "NetMaster Team",
+    tags: "security,firewall,mikrotik,wifi",
+    category: { name: "Network Security", slug: "network-security" },
+    createdAt: "2026-08-12T10:00:00Z",
+  },
+];
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -48,8 +106,10 @@ export default function BlogPage() {
           api.get<BlogPost[]>("/blog/posts").catch(() => []),
           api.get<BlogCategory[]>("/blog/categories").catch(() => []),
         ]);
-        setPosts(Array.isArray(postsData) ? postsData : []);
-        setCategories(Array.isArray(catsData) ? catsData : []);
+        const postsList = Array.isArray(postsData) ? postsData : [];
+        const catsList = Array.isArray(catsData) ? catsData : [];
+        setPosts(postsList.length > 0 ? postsList : SAMPLE_POSTS);
+        setCategories(catsList.length > 0 ? catsList : SAMPLE_CATEGORIES);
       } catch {
         // ignore
       }

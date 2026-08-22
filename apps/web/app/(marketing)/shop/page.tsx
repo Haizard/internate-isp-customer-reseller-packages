@@ -39,6 +39,64 @@ function getProductImage(product: Product): string {
   return ROUTER_IMAGES.default;
 }
 
+/* Sample data when DB is empty */
+const SAMPLE_CATEGORIES: ProductCategory[] = [
+  { id: "pc1", name: "Entry-Level", slug: "entry-level", _count: { products: 1 } },
+  { id: "pc2", name: "Mid-Range", slug: "mid-range", _count: { products: 1 } },
+  { id: "pc3", name: "Enterprise", slug: "enterprise", _count: { products: 2 } },
+];
+
+const SAMPLE_PRODUCTS: Product[] = [
+  {
+    id: "sp1",
+    name: "MikroTik hEX lite (RB750Gr3)",
+    slug: "mikrotik-hex-lite-rb750gr3",
+    description: "The smallest MikroTik router with dual-core 880MHz CPU, 256MB RAM, 5x Gigabit Ethernet. Perfect for small offices.",
+    price: 250000,
+    comparePrice: 300000,
+    imageUrl: "https://images.unsplash.com/photo-1580894742597-87bc870ddb17?w=600&q=80",
+    stock: 25,
+    featured: true,
+    category: { name: "Entry-Level", slug: "entry-level" },
+  },
+  {
+    id: "sp2",
+    name: "MikroTik hEX refresh (RB760iGS)",
+    slug: "mikrotik-hex-refresh-rb760igs",
+    description: "Compact Gigabit router with PoE output, SFP cage. For resellers with 50-150 customers.",
+    price: 450000,
+    comparePrice: 520000,
+    imageUrl: "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=600&q=80",
+    stock: 18,
+    featured: true,
+    category: { name: "Mid-Range", slug: "mid-range" },
+  },
+  {
+    id: "sp3",
+    name: "MikroTik RB4011iGS+5HacQ2HnD-IN",
+    slug: "mikrotik-rb4011",
+    description: "Quad-core 1.4GHz, 1GB RAM, SFP+ 10G, 10x Gigabit, built-in WiFi. Handles 200+ users.",
+    price: 1200000,
+    comparePrice: 1400000,
+    imageUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&q=80",
+    stock: 8,
+    featured: true,
+    category: { name: "Enterprise", slug: "enterprise" },
+  },
+  {
+    id: "sp4",
+    name: "MikroTik RB5009UG+S+IN",
+    slug: "mikrotik-rb5009",
+    description: "Most powerful compact router. 2.5G + 10G SFP+, quad-core ARM, 1GB RAM. 500+ concurrent users.",
+    price: 2500000,
+    comparePrice: 2900000,
+    imageUrl: "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=600&q=80",
+    stock: 5,
+    featured: false,
+    category: { name: "Enterprise", slug: "enterprise" },
+  },
+];
+
 export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<ProductCategory[]>([]);
@@ -53,8 +111,10 @@ export default function ShopPage() {
           api.get<Product[]>("/products").catch(() => []),
           api.get<ProductCategory[]>("/products/categories").catch(() => []),
         ]);
-        setProducts(Array.isArray(prodsData) ? prodsData : []);
-        setCategories(Array.isArray(catsData) ? catsData : []);
+        const prodsList = Array.isArray(prodsData) ? prodsData : [];
+        const catsList = Array.isArray(catsData) ? catsData : [];
+        setProducts(prodsList.length > 0 ? prodsList : SAMPLE_PRODUCTS);
+        setCategories(catsList.length > 0 ? catsList : SAMPLE_CATEGORIES);
       } catch {
         // ignore
       }

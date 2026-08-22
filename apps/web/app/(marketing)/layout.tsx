@@ -81,7 +81,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
       </header>
 
       {/* ═══ MAIN ═══ */}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 bg-networking bg-networking-nodes">{children}</main>
 
       {/* ═══ FOOTER ═══ */}
       <footer className="glass-strong border-t border-[var(--hairline)] mt-auto">
