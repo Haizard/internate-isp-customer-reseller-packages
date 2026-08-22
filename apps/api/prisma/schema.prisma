@@ -83,6 +83,9 @@ model Organization {
   children    Organization[]   @relation("OrgHierarchy")
   status      String           @default("ACTIVE") @map("status") // ACTIVE | SUSPENDED | PENDING_APPROVAL
   branding    Json?            // white-label: { brandName, primaryColor, logoUrl, welcomeMessage, footerText }
+  subscriptionPlan   String   @default("free") @map("subscription_plan") // free | growth | enterprise
+  subscriptionExpires DateTime? @map("subscription_expires")
+  voucherCommissionPct Int    @default(5) @map("voucher_commission_pct") // 5% for free, 0% for paid
 
   users       User[]
   locations   Location[]

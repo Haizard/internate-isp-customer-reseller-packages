@@ -14,6 +14,7 @@ import hotspotRoutes from "./modules/hotspot/hotspot.routes";
 import ticketRoutes from "./modules/tickets/tickets.routes";
 import notificationRoutes from "./modules/notifications/notifications.routes";
 import cronRoutes from "./modules/cron/cron.routes";
+import subscriptionRoutes from "./modules/subscriptions/subscriptions.routes";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler";
 import { authRateLimit, apiRateLimit } from "./middleware/rateLimit";
 import { config } from "./config";
@@ -41,6 +42,7 @@ app.use("/api/v1/hotspot", apiRateLimit, hotspotRoutes);
 app.use("/api/v1/tickets", apiRateLimit, ticketRoutes);
 app.use("/api/v1/notifications", apiRateLimit, notificationRoutes);
 app.use("/api/v1/cron", cronRoutes);
+app.use("/api/v1/subscriptions", apiRateLimit, subscriptionRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

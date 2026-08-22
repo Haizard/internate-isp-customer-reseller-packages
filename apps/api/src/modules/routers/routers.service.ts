@@ -1,5 +1,6 @@
 import { prisma } from "../../prisma/client";
 import { AppError } from "../../middleware/errorHandler";
+import { canAddRouter } from "../subscriptions/plans";
 import type { CreateRouterInput, UpdateRouterInput } from "./routers.dto";
 
 export class RoutersService {
@@ -8,6 +9,17 @@ export class RoutersService {
       where: { id: input.locationId, organizationId },
     });
     if (!location) throw new AppError(400, "Location not found in your scope");
+
+    // Check subscription router limit
+    const org = await prisma.organization.findUnique({ where: { id: organizationId } });
+    if (org) {
+      const routerCount = await prisma.router.count({
+        where: { location: { organizationId } },
+      });
+      if (!canAddRouter(routerCount, org.subscriptionPlan)) {
+        throw new AppError(403, `Router limit reached for ${org.subscriptionPlan} plan. Upgrade to add more routers.`);
+      }
+    }
 
     const router = await prisma.router.create({
       data: {
