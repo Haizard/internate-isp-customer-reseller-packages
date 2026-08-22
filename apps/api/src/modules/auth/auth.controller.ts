@@ -18,8 +18,8 @@ export class AuthController {
   async register(req: Request, res: Response, next: NextFunction) {
     try {
       const input = registerSchema.parse(req.body);
-      const user = await authService.register(input);
-      res.status(201).json({ data: user });
+      const result = await authService.register(input);
+      res.status(201).json({ data: result });
     } catch (err) {
       next(err);
     }

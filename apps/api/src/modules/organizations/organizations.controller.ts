@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { OrganizationsService } from "./organizations.service";
-import { createOrgSchema, updateOrgStatusSchema } from "./organizations.dto";
+import { createOrgSchema, updateBrandingSchema, updateOrgStatusSchema } from "./organizations.dto";
 
 const service = new OrganizationsService();
 
@@ -57,6 +57,16 @@ export class OrganizationsController {
     try {
       const stats = await service.platformOverview();
       res.json({ data: stats });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async updateBranding(req: Request, res: Response, next: NextFunction) {
+    try {
+      const input = updateBrandingSchema.parse(req.body);
+      const org = await service.updateBranding(req.auth!.organizationId, input, req.auth!.id);
+      res.json({ data: org });
     } catch (err) {
       next(err);
     }

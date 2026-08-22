@@ -70,9 +70,9 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-footnote text-text-secondary mt-5">
-          Want to become a reseller?{" "}
+          New reseller?{" "}
           <Link href="/register" className="text-accent-blue font-semibold">
-            Apply here
+            Create your account
           </Link>
         </p>
 

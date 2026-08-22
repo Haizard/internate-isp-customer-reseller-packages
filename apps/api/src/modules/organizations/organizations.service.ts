@@ -1,6 +1,6 @@
 import { prisma } from "../../prisma/client";
 import { AppError } from "../../middleware/errorHandler";
-import type { CreateOrgInput, UpdateOrgStatusInput } from "./organizations.dto";
+import type { CreateOrgInput, UpdateBrandingInput, UpdateOrgStatusInput } from "./organizations.dto";
 
 export class OrganizationsService {
   async create(input: CreateOrgInput, actorUserId: string) {
@@ -109,6 +109,31 @@ export class OrganizationsService {
       ) => sum + (subscription.package?.priceCents ?? 0),
       0,
     );
+  }
+
+  async updateBranding(organizationId: string, input: UpdateBrandingInput, actorUserId: string) {
+    const org = await prisma.organization.findUnique({ where: { id: organizationId } });
+    if (!org) throw new AppError(404, "Organization not found");
+
+    const existingBranding = (org.branding as Record<string, unknown>) ?? {};
+    const branding = { ...existingBranding, ...input };
+
+    const updated = await prisma.organization.update({
+      where: { id: organizationId },
+      data: { branding, updatedByUserId: actorUserId },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        actorUserId,
+        action: "UPDATE",
+        entityType: "Organization",
+        entityId: organizationId,
+        afterJson: { branding },
+      },
+    });
+
+    return updated;
   }
 
   async platformOverview() {

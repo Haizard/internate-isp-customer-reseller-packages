@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
+import { dashboardPathFor } from "@/lib/auth";
+import type { LoginResult } from "@/lib/auth";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
@@ -23,14 +25,18 @@ export default function RegisterPage() {
     setLoading(true);
     setError(null);
     try {
-      await api.post("/auth/register", {
+      const result = await api.post<LoginResult>("/auth/register", {
         name,
         email,
         password,
         role: "RESELLER",
         orgName: orgName || `${name}'s Reseller`,
       });
-      setSuccess(true);
+      // Store auth tokens and redirect to onboarding
+      localStorage.setItem("netmaster_token", result.accessToken);
+      localStorage.setItem("netmaster_refresh_token", result.refreshToken);
+      localStorage.setItem("netmaster_user", JSON.stringify(result.user));
+      router.push("/reseller/onboarding");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed");
     } finally {
@@ -45,8 +51,8 @@ export default function RegisterPage() {
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-md mb-4 bg-gradient-to-br from-[#d88ff7] via-[#bf5af2] to-[#9a34d6]">
             <Icon name="users" size={28} />
           </div>
-          <h1 className="text-title-1 font-bold text-text-primary">Become a Reseller</h1>
-          <p className="text-callout text-text-secondary mt-1">Apply to resell internet access</p>
+          <h1 className="text-title-1 font-bold text-text-primary">Start Reselling</h1>
+          <p className="text-callout text-text-secondary mt-1">Create your account and start selling internet</p>
         </div>
 
         <div className="glass rounded-xl shadow-sm p-5">
@@ -55,13 +61,10 @@ export default function RegisterPage() {
               <div className="w-12 h-12 mx-auto rounded-full bg-[rgba(48,209,88,0.15)] text-[#30D158] flex items-center justify-center mb-3">
                 <Icon name="check" size={24} />
               </div>
-              <p className="text-body font-semibold text-text-primary">Application submitted</p>
+              <p className="text-body font-semibold text-text-primary">Account created!</p>
               <p className="text-footnote text-text-secondary mt-1">
-                The ISP admin will review and approve your reseller account.
+                Redirecting you to your dashboard…
               </p>
-              <Link href="/login" className="inline-block mt-4 text-accent-blue font-semibold text-footnote">
-                Back to sign in
-              </Link>
             </div>
           ) : (
             <form onSubmit={onSubmit} className="space-y-4">
@@ -91,8 +94,8 @@ export default function RegisterPage() {
                   {error}
                 </p>
               )}
-              <Button type="submit" fullWidth size="lg" variant="secondary" disabled={loading}>
-                {loading ? "Submitting…" : "Apply to become a reseller"}
+              <Button type="submit" fullWidth size="lg" disabled={loading}>
+                {loading ? "Creating account…" : "Create Reseller Account"}
               </Button>
             </form>
           )}

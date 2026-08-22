@@ -87,15 +87,14 @@ export class AuthService {
       return publicUser(user);
     }
 
-    // RESELLER application: create a reseller org under the platform's first ISP org
+    // RESELLER self-registration: create org immediately active (no ISP approval needed)
     const isp = await prisma.organization.findFirst({ where: { type: "ISP" } });
-    if (!isp) throw new AppError(409, "No ISP available to host reseller applications");
     const org = await prisma.organization.create({
       data: {
         name: input.orgName ?? `${input.name}'s Reseller`,
         type: "RESELLER",
-        parentOrgId: isp.id,
-        status: "PENDING_APPROVAL",
+        parentOrgId: isp?.id ?? null,
+        status: "ACTIVE",
       },
     });
     const user = await prisma.user.create({
@@ -107,7 +106,14 @@ export class AuthService {
         organizationId: org.id,
       },
     });
-    return publicUser(user);
+
+    // Return full auth tokens so reseller is logged in immediately
+    const auth = await toAuthUser(user.id);
+    return {
+      user: publicUser(user),
+      accessToken: signAccess(auth),
+      refreshToken: signRefresh(auth),
+    };
   }
 
   async refresh(refreshToken: string) {

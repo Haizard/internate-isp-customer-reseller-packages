@@ -82,6 +82,7 @@ model Organization {
   parentOrg   Organization?    @relation("OrgHierarchy", fields: [parentOrgId], references: [id])
   children    Organization[]   @relation("OrgHierarchy")
   status      String           @default("ACTIVE") @map("status") // ACTIVE | SUSPENDED | PENDING_APPROVAL
+  branding    Json?            // white-label: { brandName, primaryColor, logoUrl, welcomeMessage, footerText }
 
   users       User[]
   locations   Location[]
