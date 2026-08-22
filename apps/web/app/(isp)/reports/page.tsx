@@ -26,10 +26,14 @@ interface PackagePopularity {
 
 interface ServiceRequest {
   id: string;
-  type: string;
+  subject: string;
+  description: string | null;
   status: string;
-  message: string | null;
-  customer: { name: string; phone: string };
+  priority: string;
+  source: string;
+  assignee?: { id: string; name: string } | null;
+  requester?: { id: string; name: string } | null;
+  createdAt: string;
 }
 
 interface AuditLog {
@@ -106,7 +110,7 @@ export default function ReportsPage() {
         {(requests.data ?? []).map((request, i) => (
           <div key={request.id} className={i > 0 ? "hairline" : ""}>
             <div className="px-4 py-3 flex items-center gap-3">
-              <div className="flex-1"><p className="text-body font-medium">{request.type} · {request.customer.name}</p><p className="text-footnote text-text-secondary">{request.message ?? "No message"} · {request.customer.phone}</p></div>
+              <div className="flex-1"><p className="text-body font-medium">{request.subject}</p><p className="text-footnote text-text-secondary">{request.description ?? "No description"} · {request.requester?.name ?? "Unknown"}</p></div>
               <Button variant="secondary" onClick={() => updateRequest(request.id, request.status === "OPEN" ? "IN_PROGRESS" : "CLOSED")}>{request.status === "OPEN" ? "Start" : request.status === "IN_PROGRESS" ? "Close" : "Closed"}</Button>
             </div>
           </div>
