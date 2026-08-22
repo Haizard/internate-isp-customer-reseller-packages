@@ -3,14 +3,34 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { useState } from "react";
-import { NetworkBackground } from "@/components/marketing/NetworkBackground";
 
 export default function MarketingLayout({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      <NetworkBackground />
+      {/* ═══ NETWORKING BACKGROUND ═══ */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 w-full h-full">
+          <defs>
+            <pattern id="netGrid" x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="60" x2="60" y2="60" stroke="rgba(10,132,255,0.08)" strokeWidth="1" />
+              <line x1="60" y1="0" x2="60" y2="60" stroke="rgba(10,132,255,0.08)" strokeWidth="1" />
+              <circle cx="60" cy="60" r="2.5" fill="rgba(10,132,255,0.14)" />
+              <circle cx="30" cy="30" r="1" fill="rgba(10,132,255,0.06)" />
+            </pattern>
+            <pattern id="netDiag" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+              <line x1="0" y1="0" x2="60" y2="60" stroke="rgba(10,132,255,0.04)" strokeWidth="1" />
+              <line x1="120" y1="0" x2="60" y2="60" stroke="rgba(10,132,255,0.04)" strokeWidth="1" />
+              <line x1="60" y1="60" x2="120" y2="120" stroke="rgba(10,132,255,0.04)" strokeWidth="1" />
+              <circle cx="60" cy="60" r="3" fill="rgba(10,132,255,0.06)" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#netGrid)" />
+          <rect width="100%" height="100%" fill="url(#netDiag)" />
+        </svg>
+      </div>
+
       {/* ═══ NAVBAR ═══ */}
       <header className="glass-strong sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
@@ -86,7 +106,7 @@ export default function MarketingLayout({ children }: { children: ReactNode }) {
       <main className="flex-1 relative z-10">{children}</main>
 
       {/* ═══ FOOTER ═══ */}
-      <footer className="glass-strong border-t border-[var(--hairline)] mt-auto">
+      <footer className="glass-strong border-t border-[var(--hairline)] mt-auto relative z-10">
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-14">
           <div className="grid gap-10 md:grid-cols-4">
             {/* Brand */}

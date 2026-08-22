@@ -1,5 +1,4 @@
 @import "./tokens.css";
-@import "./networking.css";
 
 /* Base */
 html {
@@ -16,7 +15,10 @@ body {
     "Segoe UI",
     Roboto,
     sans-serif;
-  background: var(--bg-gradient);
+  background:
+    /* Circuit-board grid pattern */
+    url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='0' y1='60' x2='60' y2='60' stroke='rgba(10,132,255,0.07)' stroke-width='1'/%3E%3Cline x1='60' y1='0' x2='60' y2='60' stroke='rgba(10,132,255,0.07)' stroke-width='1'/%3E%3Ccircle cx='60' cy='60' r='2' fill='rgba(10,132,255,0.12)'/%3E%3Ccircle cx='30' cy='30' r='1' fill='rgba(10,132,255,0.05)'/%3E%3C/svg%3E"),
+    var(--bg-gradient);
   background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
