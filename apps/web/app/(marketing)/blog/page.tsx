@@ -24,6 +24,16 @@ interface BlogCategory {
   _count?: { posts: number };
 }
 
+/* Fallback cover images by category */
+const COVER_MAP: Record<string, string> = {
+  "mikrotik": "https://images.unsplash.com/photo-1580894742597-87bc870ddb17?w=600&q=80",
+  "tutorial": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80",
+  "networking": "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=600&q=80",
+  "firmware": "https://images.unsplash.com/photo-1614064641938-3bbee52942c7?w=600&q=80",
+  "getting-started": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&q=80",
+};
+const DEFAULT_COVER = "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&q=80";
+
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
@@ -56,26 +66,37 @@ export default function BlogPage() {
   const featured = filtered[0];
   const rest = filtered.slice(1);
 
+  function getCover(post: BlogPost): string {
+    if (post.coverImage) return post.coverImage;
+    if (post.category?.slug && COVER_MAP[post.category.slug]) return COVER_MAP[post.category.slug];
+    return DEFAULT_COVER;
+  }
+
   return (
     <div className="min-h-screen">
-      {/* Hero Header */}
-      <section className="relative py-16 md:py-24 px-4 overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-20 right-0 w-[400px] h-[400px] rounded-full bg-[var(--accent-blue)] opacity-[0.05] blur-[100px]" />
-          <div className="absolute -bottom-20 left-0 w-[300px] h-[300px] rounded-full bg-[var(--accent-purple)] opacity-[0.04] blur-[100px]" />
+      {/* Hero Header with networking background */}
+      <section className="relative py-20 md:py-28 overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=1920&q=80"
+            alt=""
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0a1628]/92 via-[#0d1f3c]/88 to-[#0a1628]/95" />
         </div>
-        <div className="relative max-w-6xl mx-auto text-center">
+        <div className="relative z-10 max-w-6xl mx-auto px-4 text-center">
           <span className="text-sm font-semibold text-[var(--accent-blue)] uppercase tracking-widest">Our Blog</span>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-[var(--text-primary)] mt-3 mb-4">
-            Learn, Build & <span className="text-gradient">Grow</span>
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mt-3 mb-4">
+            Learn, Build & <span className="bg-gradient-to-r from-[var(--accent-blue)] to-[var(--accent-teal)] bg-clip-text text-transparent">Grow</span>
           </h1>
-          <p className="text-lg text-[var(--text-secondary)] max-w-xl mx-auto">
+          <p className="text-lg text-white/60 max-w-xl mx-auto">
             Tutorials, guides, and insights for internet resellers and network operators.
           </p>
         </div>
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-[var(--bg-base)] to-transparent" />
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 pb-20">
+      <div className="max-w-6xl mx-auto px-4 pb-20 -mt-6 relative z-10">
         {/* Category Filters */}
         {categories.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-10 justify-center">
@@ -123,7 +144,7 @@ export default function BlogPage() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-20">
-            <div className="text-6xl mb-4">📝</div>
+            <div className="w-20 h-20 rounded-3xl bg-[var(--glass-surface)] mx-auto flex items-center justify-center text-4xl mb-4">📝</div>
             <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">No posts yet</h3>
             <p className="text-[var(--text-secondary)]">Check back soon — we&apos;re working on great content!</p>
           </div>
@@ -133,26 +154,23 @@ export default function BlogPage() {
             {featured && (
               <Link href={`/blog/${featured.slug}`} className="block mb-12">
                 <div className="glass rounded-3xl overflow-hidden hover:shadow-xl transition-all duration-500 group grid md:grid-cols-2">
-                  {featured.coverImage ? (
-                    <div className="h-64 md:h-auto relative overflow-hidden">
-                      <img
-                        src={featured.coverImage}
-                        alt={featured.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                  <div className="h-64 md:h-auto relative overflow-hidden">
+                    <img
+                      src={getCover(featured)}
+                      alt={featured.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    <div className="absolute bottom-4 left-4 right-4">
+                      {featured.category && (
+                        <span className="inline-flex px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-bold uppercase tracking-wider">
+                          {featured.category.name}
+                        </span>
+                      )}
                     </div>
-                  ) : (
-                    <div className="h-64 md:h-auto bg-gradient-to-br from-[var(--accent-blue)]/10 to-[var(--accent-purple)]/10 flex items-center justify-center">
-                      <span className="text-6xl opacity-30">📖</span>
-                    </div>
-                  )}
+                  </div>
                   <div className="p-8 md:p-10 flex flex-col justify-center">
-                    {featured.category && (
-                      <span className="inline-flex self-start px-3 py-1 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] text-xs font-bold uppercase tracking-wider mb-4">
-                        {featured.category.name}
-                      </span>
-                    )}
+                    <span className="text-xs font-bold text-[var(--accent-blue)] uppercase tracking-widest mb-2">Featured</span>
                     <h2 className="text-2xl md:text-3xl font-extrabold text-[var(--text-primary)] mb-3 group-hover:text-[var(--accent-blue)] transition-colors">
                       {featured.title}
                     </h2>
@@ -175,27 +193,20 @@ export default function BlogPage() {
                 {rest.map((post) => (
                   <Link key={post.id} href={`/blog/${post.slug}`}>
                     <article className="glass rounded-2xl overflow-hidden hover:shadow-xl hover:scale-[1.01] transition-all duration-300 group h-full flex flex-col">
-                      {post.coverImage ? (
-                        <div className="h-48 overflow-hidden">
-                          <img
-                            src={post.coverImage}
-                            alt={post.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                        </div>
-                      ) : (
-                        <div className="h-48 bg-gradient-to-br from-[var(--accent-blue)]/5 to-[var(--accent-purple)]/5 flex items-center justify-center">
-                          <span className="text-4xl opacity-20">📖</span>
-                        </div>
-                      )}
+                      <div className="h-48 overflow-hidden relative">
+                        <img
+                          src={getCover(post)}
+                          alt={post.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                        {post.category && (
+                          <span className="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-bold">
+                            {post.category.name}
+                          </span>
+                        )}
+                      </div>
                       <div className="p-5 flex-1 flex flex-col">
-                        <div className="flex items-center gap-2 mb-3">
-                          {post.category && (
-                            <span className="px-2.5 py-0.5 rounded-full bg-[var(--accent-blue)]/10 text-[var(--accent-blue)] text-xs font-bold">
-                              {post.category.name}
-                            </span>
-                          )}
-                        </div>
                         <h3 className="text-lg font-bold text-[var(--text-primary)] mb-2 group-hover:text-[var(--accent-blue)] transition-colors line-clamp-2">
                           {post.title}
                         </h3>
@@ -204,11 +215,7 @@ export default function BlogPage() {
                         </p>
                         <div className="flex items-center justify-between text-xs text-[var(--text-tertiary)] pt-3 border-t border-[var(--hairline)]">
                           <span>{new Date(post.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-                          {post.tags && post.tags.split(",").length > 0 && (
-                            <span className="text-[var(--accent-blue)] font-medium">
-                              {post.tags.split(",")[0].trim()}
-                            </span>
-                          )}
+                          {post.author && <span className="font-medium">{post.author}</span>}
                         </div>
                       </div>
                     </article>
